@@ -2,7 +2,7 @@
 clear all; close all; clc;
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B
-global k_P k_D
+global k_P k_D x_d y_d z_d
 
 T = 40; % Simulation time
 N = 16; % Number of differential equations
@@ -51,7 +51,7 @@ I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 
 
 % --- Reference trajectory parameters ------------------------------------%
-
+x_d = 0; y_d = 0; z_d = 1;
 %-------------------------------------------------------------------------%
 
 

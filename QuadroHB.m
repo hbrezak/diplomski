@@ -1,7 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N QQ grav mm Ixx Iyy Izz I_B
-global k_P k_D
+global k_P k_D x_d y_d z_d
 
 dy = zeros(N, 1);
 
@@ -40,6 +40,15 @@ e_x = X-x_d; d1e_x = Xd-d1x_d;
 e_y = Y-y_d; d1e_y = Yd-d1y_d;
 e_z = Z-z_d; d1e_z = Zd-d1z_d;
 %-------------------------------------------------------------------------%
+
+% --- Reference trajectory parameters ------------------------------------%
+if (t>3*T/4)    % referentna trajektorija
+    z_d=0;
+end
+
+d1x_d = 0; d1y_d = 0; d1z_d = 0;
+%-------------------------------------------------------------------------%
+
 
 % --- Quadrotor parameters(nominal) --------------------------------------%
 % Parametri: m, Ix, Iy, Iz su pretpostavljene vrijednosti realnih
