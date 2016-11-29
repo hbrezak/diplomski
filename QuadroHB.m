@@ -6,19 +6,31 @@ dy = zeros(N, 1);
 
 if (QQ == 1)
 % --- STATE VARIABLES - MODEL 1 ------------------------------------------%
-X=y(1);
-Y=y(2);
-Z=y(3);
+X=y(1); %Xd=y(7); #TODO: Fix MODEL 1 
+Y=y(2); %Yd=y(8);
+Z=y(3); %Zd=y(9);
 
-Phi=y(4);
-Theta=y(5);
-Psi=y(6);
+Phi=y(4); %Phid=y(10);
+Theta=y(5); %Thetad=y(11);
+Psi=y(6); %Psid=y(12);
 
 Position = [X; Y; Z;];
 Angle = [Phi; Theta; Psi];
 Velocity_Lin_B = y(7:9);
 Velocity_Ang_B = y(10:12);
 Velocity = [Velocity_Lin_B; Velocity_Ang_B];
+%-------------------------------------------------------------------------%
+end
+
+if (QQ == 2)||(QQ == 3)||(QQ == 4)
+% --- STATE VARIABLES - MODEL 2 - MODEL 3 - MODEL 4 ----------------------%
+X=y(1); Xd=y(2);
+Y=y(3); Yd=y(4);
+Z=y(5); Zd=y(6);
+
+Phi=y(7); Phid=y(8);
+Theta=y(9); Thetad=y(10);
+Psi=y(11); Psid=y(12);
 %-------------------------------------------------------------------------%
 end
 
@@ -62,6 +74,79 @@ U_B = [0; 0; F; T_1; T_2; T_3];
 dy(1:3) = R_B2E*Velocity_Lin_B;
 dy(4:6) = R_B2E*Velocity_Ang_B;
 dy(7:12) = inv(M)*(-C*Velocity_B + G + U);
+%-------------------------------------------------------------------------%
+end
+
+sPhi = sin(Phi); cPhi = cos(Phi);
+sTheta = sin(Theta); cTheta = cos(Theta);
+sPsi = sin(Psi); cPsi = cos(Psi);
+
+if (QQ == 2)
+% --- MODEL 2 ------------------------------------------------------------%
+dy(1) = y(2);
+dy(2) = (sPsi*sPhi + cPsi*sTheta*cPhi) * (F/mm);
+
+dy(3) = y(4);
+dy(4) = -(cPsi*sPhi + sPsi*sTheta*cPhi) * (F/mm);
+
+dy(5) = y(6);
+dy(6) = -grav + (cTheta*cPhi)*(F/mm);
+
+dy(7) = y(8);
+dy(8) = ((Iy-Iz)/Ix)*Thetad*Psid + (T_1/Ixx);
+
+dy(9) = y(10);
+dy(10) = ((Iz-Ix)/Iy)*Phid*Psid + (T_2/Iyy);
+
+dy(11) = y(12);
+dy(12) = ((Ix-Iy)/Iz)*Phid*Thetad + (T_3/Izz);
+
+%-------------------------------------------------------------------------%
+end
+
+if (QQ == 3)
+% --- MODEL 3 ------------------------------------------------------------%
+dy(1) = y(2);
+dy(2) = Theta * (F/mm);
+
+dy(3) = y(4);
+dy(4) = -Phi * (F/mm);
+
+dy(5) = y(6);
+dy(6) = -grav + F/mm;
+
+dy(7) = y(8);
+dy(8) = T_1/Ixx;
+
+dy(9) = y(10);
+dy(10) = T_2/Iyy;
+
+dy(11) = y(12);
+dy(12) = T_3/Izz;
+
+%-------------------------------------------------------------------------%
+end
+
+if (QQ == 4)
+% --- MODEL 4 ------------------------------------------------------------%
+dy(1) = y(2);
+dy(2) = Theta * grav;
+
+dy(3) = y(4);
+dy(4) = -Phi * grav;
+
+dy(5) = y(6);
+dy(6) = -grav + F/mm;
+
+dy(7) = y(8);
+dy(8) = T_1/Ixx;
+
+dy(9) = y(10);
+dy(10) = T_2/Iyy;
+
+dy(11) = y(12);
+dy(12) = T_3/Izz;
+
 %-------------------------------------------------------------------------%
 end
 
