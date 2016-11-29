@@ -11,9 +11,9 @@ grav = 9.81;
 Kf = 100;
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
-% QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
+QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
 % QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
@@ -107,6 +107,33 @@ subplot(2,3,3), plot(t,y(:,3),'b', t,z_d,'r:', 'linewidth',4), ylabel('z (m)','F
 subplot(2,3,4), plot(t,y(:,4),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
 subplot(2,3,5), plot(t,y(:,5),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
 subplot(2,3,6), plot(t,y(:,6),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+
+% Errors
+figure(2)
+subplot(2,3,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,2), semilogy(t,abs(y(:,2)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,3), semilogy(t,abs(y(:,3)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+
+% Thrust force and torques
+F=diff(y(:,13))./diff(t);
+T1=diff(y(:,14))./diff(t);
+T2=diff(y(:,15))./diff(t);
+T3=diff(y(:,16))./diff(t);
+d1e_z_est = diff(y(:,17))./diff(t);
+d1Z = diff(y(:,3))./diff(t);
+td=t(1:(length(t)-1));
+
+figure(3)
+subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 9 15])
+subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -10 5])
+subplot(2,2,3), plot(td,T2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 5])
+subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 1])
+
+
+% Estimated velocity
+figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
+subplot(2,1,1), plot(td, d1e_z_est,'b-', td, d1Z, 'r:', 'linewidth',4), ylabel('d1Z estimated','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
+subplot(2,1,2), plot(t, y(:, 9), 'linewidth',4), ylabel('d1Z from model','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
 %-------------------------------------------------------------------------%
 end
 
@@ -126,18 +153,26 @@ subplot(2,3,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d|
 subplot(2,3,2), semilogy(t,abs(y(:,3)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
 subplot(2,3,3), semilogy(t,abs(y(:,5)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
 
-% Sila i momenti
+% Thrust force and torques
 F=diff(y(:,13))./diff(t);
-M1=diff(y(:,14))./diff(t);
-M2=diff(y(:,15))./diff(t);
-M3=diff(y(:,16))./diff(t);
+T1=diff(y(:,14))./diff(t);
+T2=diff(y(:,15))./diff(t);
+T3=diff(y(:,16))./diff(t);
+d1e_z_est = diff(y(:,17))./diff(t);
+d1Z = diff(y(:,5))./diff(t);
 td=t(1:(length(t)-1));
 
 figure(3)
 subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 9 15])
-subplot(2,2,2), plot(td,M1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -10 5])
-subplot(2,2,3), plot(td,M2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 5])
-subplot(2,2,4), plot(td,M3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 1])
+subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -10 5])
+subplot(2,2,3), plot(td,T2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 5])
+subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 1])
+
+% Estimated velocity
+figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
+subplot(2,1,1), plot(td, d1e_z_est,'b-', td, d1Z, 'r:', 'linewidth',4), ylabel('d1Z estimated','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
+subplot(2,1,2), plot(t, y(:, 6), 'linewidth',4), ylabel('d1Z from model','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
+
 %--------------------------------------------------------------%
 end
 
