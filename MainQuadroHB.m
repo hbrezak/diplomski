@@ -1,7 +1,7 @@
 % Quadrotor stabilization algorithms comparison
 clear all; close all; clc;
 
-global N T QQ YY grav mm Ixx Iyy Izz I_B
+global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
 global k_P k_D x_d y_d z_d
 
 T = 40; % Simulation time
@@ -48,7 +48,7 @@ I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 % === CHOOSE DISTURBANCE =================================================%
 
 %=========================================================================%
-
+d0=4; Sg=0.1; % disturbance parameters
 
 % --- Reference trajectory parameters ------------------------------------%
 x_d = 0; y_d = 0; z_d = 1;
