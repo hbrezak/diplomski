@@ -1,25 +1,25 @@
 function dy = QuadroHB(t,y)
 
-global N QQ grav mm Ixx Iyy Izz I_B
+global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
 global k_P k_D x_d y_d z_d
 
 dy = zeros(N, 1);
 
 if (QQ == 1)
 % --- STATE VARIABLES - MODEL 1 ------------------------------------------%
-X=y(1); %Xd=y(7); #TODO: Fix MODEL 1 
-Y=y(2); %Yd=y(8);
-Z=y(3); %Zd=y(9);
+X=y(1); Xd=y(7); % #TODO: Fix MODEL 1 
+Y=y(2); Yd=y(8);
+Z=y(3); Zd=y(9);
 
-Phi=y(4); %Phid=y(10);
-Theta=y(5); %Thetad=y(11);
-Psi=y(6); %Psid=y(12);
+Phi=y(4); Phid=y(10);
+Theta=y(5); Thetad=y(11);
+Psi=y(6); Psid=y(12);
 
 Position = [X; Y; Z;];
 Angle = [Phi; Theta; Psi];
 Velocity_Lin_B = y(7:9);
 Velocity_Ang_B = y(10:12);
-Velocity = [Velocity_Lin_B; Velocity_Ang_B];
+Velocity_B = [Velocity_Lin_B; Velocity_Ang_B];
 %-------------------------------------------------------------------------%
 end
 
@@ -35,12 +35,6 @@ Psi=y(11); Psid=y(12);
 %-------------------------------------------------------------------------%
 end
 
-% --- Error variables ----------------------------------------------------% 
-e_x = X-x_d; d1e_x = Xd-d1x_d; 
-e_y = Y-y_d; d1e_y = Yd-d1y_d;
-e_z = Z-z_d; d1e_z = Zd-d1z_d;
-%-------------------------------------------------------------------------%
-
 % --- Reference trajectory parameters ------------------------------------%
 if (t>3*T/4)    % referentna trajektorija
     z_d=0;
@@ -49,6 +43,11 @@ end
 d1x_d = 0; d1y_d = 0; d1z_d = 0;
 %-------------------------------------------------------------------------%
 
+% --- Error variables ----------------------------------------------------% 
+e_x = X-x_d; d1e_x = Xd-d1x_d; 
+e_y = Y-y_d; d1e_y = Yd-d1y_d;
+e_z = Z-z_d; d1e_z = Zd-d1z_d;
+%-------------------------------------------------------------------------%
 
 % --- Quadrotor parameters(nominal) --------------------------------------%
 % Parametri: m, Ix, Iy, Iz su pretpostavljene vrijednosti realnih
@@ -94,14 +93,14 @@ T_B2E = (1/cos(Theta))*[cos(Theta) sin(Theta)*sin(Phi)  sin(Theta)*cos(Phi);
 % Skew-symmetric matrix
 S = @(x) [0 -x(3) x(2); x(3) 0 -x(1); -x(2) x(1) 0];
 
-M = [mm*eye(3) zeros(3); zeros(3) I_B*exe(3)];
+M = [mm*eye(3) zeros(3); zeros(3) I_B*eye(3)];
 C = [zeros(3) -S(mm*Velocity_Lin_B); zeros(3) -S(I_B*Velocity_Ang_B)];
 G = [R_B2E*[0; 0; -m*grav]; zeros(3,1)];
 U_B = [0; 0; F; T_1; T_2; T_3];
 
 dy(1:3) = R_B2E*Velocity_Lin_B;
 dy(4:6) = R_B2E*Velocity_Ang_B;
-dy(7:12) = inv(M)*(-C*Velocity_B + G + U);
+dy(7:12) = inv(M)*(-C*Velocity_B + G + U_B);
 %-------------------------------------------------------------------------%
 end
 

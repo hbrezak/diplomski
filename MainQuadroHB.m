@@ -10,8 +10,8 @@ N = 16; % Number of differential equations
 grav = 9.81;
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
-QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
 % QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
 % QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
@@ -79,16 +79,66 @@ end
 
 if (WW == 1)
 % Fixed-step Runge-Kutta 4th order
-tspan = [0 T]; Nstep = 10000; DeltaT = T/Nstep:
+tspan = [0 T]; Nstep = 10000; DeltaT = T/Nstep;
 [t, y] = rk4(@QuadroHB, tspan, xx0, DeltaT);
 end
 
 
+% === PLOTS ==============================================================%
+set(0, 'DefaultFigurePosition', [1367 -281 1920 973]); % set all plots position to center of secondary monitor at home
+
 % --- Reference trajectories ---------------------------------------------%
 
+z_d = zeros(size(t)); 
+z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))]; 
+
+x_d = zeros(size(t)); 
+y_d = zeros(size(t)); 
+
 %-------------------------------------------------------------------------%
 
-% --- PLOTS --------------------------------------------------------------%
-
-
+if (QQ == 1)
+% --- MODEL 1 ------------------------------------------------------------%
+figure(1)
+subplot(2,3,1), plot(t,y(:,1),'b', t,x_d,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,2), plot(t,y(:,2),'b', t,y_d,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,3), plot(t,y(:,3),'b', t,z_d,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 10 0 1.2])
+subplot(2,3,4), plot(t,y(:,4),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,5), plot(t,y(:,5),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,6), plot(t,y(:,6),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
 %-------------------------------------------------------------------------%
+end
+
+if (QQ == 2)||(QQ == 3)||(QQ == 4)
+% --- MODEL 2 - MODEL 3 - MODEL 4 ----------------------------------------%
+figure(1)
+subplot(2,3,1), plot(t,y(:,1),'b', t, x_d,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,2), plot(t,y(:,3),'b', t, y_d,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,3), plot(t,y(:,5),'b', t, z_d,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,4), plot(t,y(:,7),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,5), plot(t,y(:,9),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+
+% Errors
+figure(2)
+subplot(2,3,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,2), semilogy(t,abs(y(:,3)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,3), semilogy(t,abs(y(:,5)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+
+% Sila i momenti
+F=diff(y(:,13))./diff(t);
+M1=diff(y(:,14))./diff(t);
+M2=diff(y(:,15))./diff(t);
+M3=diff(y(:,16))./diff(t);
+td=t(1:(length(t)-1));
+
+figure(3)
+subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 9 15])
+subplot(2,2,2), plot(td,M1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -10 5])
+subplot(2,2,3), plot(td,M2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 5])
+subplot(2,2,4), plot(td,M3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 5 -1 1])
+%--------------------------------------------------------------%
+end
+
+
+%==========================================================================%
