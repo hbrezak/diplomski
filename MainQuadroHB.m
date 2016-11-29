@@ -1,7 +1,8 @@
 % Quadrotor stabilization algorithms comparison
 clear all; close all; clc;
 
-global N QQ grav mm Ixx Iyy Izz I_B
+global N T QQ YY grav mm Ixx Iyy Izz I_B
+global k_P k_D
 
 T = 40; % Simulation time
 N = 16; % Number of differential equations
@@ -15,6 +16,10 @@ QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
 % QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
+% === CHOOSE CONTROLLER ==================================================%
+YY = 1; % linear PD control
+
+%=========================================================================%
 
 % === CHOOSE SOLVER ======================================================%
 WW = 1; % RK4
@@ -51,7 +56,13 @@ I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 
 
 % --- Controller parameters ----------------------------------------------%
+% Polovi:
+pol_1 = -2;
+pol_2 = -3;
+pol_3 = -4;
 
+k_P = pol_1 * pol_2;
+k_D = -(pol_1 + pol_2);
 
 %-------------------------------------------------------------------------%
 xx0 = zeros(1, N);

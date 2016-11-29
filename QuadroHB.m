@@ -1,6 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N QQ grav mm Ixx Iyy Izz I_B
+global k_P k_D
 
 dy = zeros(N, 1);
 
@@ -48,6 +49,16 @@ Ix = 1.0*Ixx;
 Iy = 1.0*Iyy; 
 Iz = 1.0*Izz; 
 %-------------------------------------------------------------------------%
+
+if (YY == 1)
+% --- PD controller ------------------------------------------------------%
+U_0 = m*(grav - k_D*Zd - k_P*e_z); % z velocity is measured (Zd known)
+
+U_1 = -k_D*Phid - k_P*Phi;
+U_2 = -k_D*Thetad - k_P*Theta;
+U_3 = -k_D*Psid - k_P*Psi;
+%-------------------------------------------------------------------------%
+end
 
 if (QQ == 1)
 % --- MODEL 1 ------------------------------------------------------------%
