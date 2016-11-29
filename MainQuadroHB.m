@@ -2,12 +2,13 @@
 clear all; close all; clc;
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D x_d y_d z_d
+global k_P k_D x_d y_d z_d Kf
 
 T = 40; % Simulation time
-N = 16; % Number of differential equations
+N = 17; % Number of differential equations
 
 grav = 9.81;
+Kf = 100;
 
 % === CHOOSE MODEL =======================================================%
 QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
