@@ -2,19 +2,20 @@
 clear all; close all; clc;
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D x_d y_d z_d Kf
+global k_P k_D x_d y_d z_d Kest Kf1
 
 T = 40; % Simulation time
-N = 17; % Number of differential equations
+N = 18; % Number of differential equations
 
 grav = 9.81;
-Kf = 100;
+Kest = 100;
+Kf1 = 1.2;
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
 % QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
-% QQ = 4; % MODEL 4 (linear quadrotor model)
+QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%

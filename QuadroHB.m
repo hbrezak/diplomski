@@ -1,7 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D x_d y_d z_d Kf
+global k_P k_D x_d y_d z_d Kest Kf1
 
 dy = zeros(N, 1);
 
@@ -60,7 +60,9 @@ Iz = 1.0*Izz;
 
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
-d1e_z_est = -Kf*(y(17) - e_z); % y(17) = e_z_est
+e_z = Z - y(18);
+
+d1e_z_est = -Kest*(y(17) - e_z); % y(17) = e_z_est
 
 % U_0 = m*(grav - k_D*Zd - k_P*e_z); % z velocity is measured (Zd known)
 
@@ -196,6 +198,6 @@ dy(15) = T_2;
 dy(16) = T_3;
 
 dy(17) = d1e_z_est;
-
+dy(18) = -Kf1*(y(18) - z_d);
 
 
