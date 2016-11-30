@@ -72,6 +72,15 @@ U_3 = -k_D*Psid - k_P*Psi;
 %-------------------------------------------------------------------------%
 end
 
+% #TODO: saturacija motora ---------------
+% probably good with l = 0.1; d = 0.0000001; b=0.0000008;
+% E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
+% Omega = (inv(E_B)*[U_0 U_1 U_2 U_3]');
+% kg = 1885^2; % motor ang. velocity (rad/s), original 2400kV*11.1V reduced by more than 20% for prop
+% Omega = kg.*tanh(Omega./kg);
+% FF = E_B * Omega;
+% ----------------------------------------
+
 % Disturbances (udar vjetra):
 d_0 = 0; d_1 = 0*d0*exp(-Sg*(t-T/2)^2); d_2 = 0; d_3 = 0;
 

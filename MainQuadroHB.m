@@ -11,9 +11,9 @@ grav = 9.81;
 Kf = 100;
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
-QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
+% QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
 % QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
@@ -39,7 +39,10 @@ mm = 1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
 % mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309; 
 
 % "Backstepping Control for a Quadrotor Helicopter":
-% mm=2; Ixx = 1.2416; Iyy = 1.2416; Izz = 2.4832; % d = 0.2m, c = 0.01m %
+% mm=2; Ixx = 1.2416; Iyy = 1.2416; Izz = 2.4832; l = 0.1; d = 0.0000001; b=0.0000008;
+    % l - dist to COM; b - thrust factor; d - drag factor
+    % (l, b, d) notation used in bible; (d, /, c)
+    % values l,d,b modified from original paper data
 
 Ixy = 0; Iyz = 0; Ixz = 0;
 I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
@@ -69,11 +72,11 @@ k_D = -(pol_1 + pol_2);
 
 % --- Initial conditions -------------------------------------------------%
 xx0 = zeros(1, N);
-if (QQ == 2)|(QQ == 3)
-   xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
-end
 if (QQ == 1)
    xx0(4)=0*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
+end
+if (QQ == 2)||(QQ == 3)||(QQ == 4)
+   xx0(7)=1*0.1; xx0(9)=1*0.1; xx0(11)=1*0.1; % initial angles
 end
 %-------------------------------------------------------------------------%
 
