@@ -63,11 +63,11 @@ if (YY == 1)
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-de_z_est = -Ke*(y(17) - e_z); % y(17) = e_z_est
+de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
 
-% U_0 = m*(grav - k_D*Zd - k_P*e_z); % z velocity is measured (Zd known)
+U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
 
-U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
+% U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
 
 U_1 = -k_D*dPhi - k_P*Phi;
 U_2 = -k_D*dTheta - k_P*Theta;
@@ -85,7 +85,10 @@ end
 % ----------------------------------------
 
 % Disturbances (udar vjetra):
-d_0 = 0; d_1 = 0*d0*exp(-Sg*(t-T/2)^2); d_2 = 0; d_3 = 0;
+d_0 = 0*d0*exp(-Sg*(t-T/2)^2); 
+d_1 = 0*d0*exp(-Sg*(t-T/2)^2); 
+d_2 = 1*d0*exp(-Sg*(t-T/2)^2); 
+d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
 
 F = U_0 + d_0;
 T_1 = U_1 + d_1;
@@ -95,11 +98,11 @@ T_3 = U_3 + d_3;
 if (QQ == 1)
 % --- MODEL 1 ------------------------------------------------------------%
 % Rotation matrix
-R_x = @(x) [1 0 0; 0 cos(x) -sin(x); 0 sin(x) cos(x)];
-R_y = @(x) [cos(x) 0 sin(x); 0 1 0; -sin(x) 0 cos(x)];
-R_z = @(x) [cos(x) -sin(x) 0; sin(x) cos(x) 0; 0 0 1];
+R_x = @(x) [1 0 0; 0 cos(x) -sin(x); 0 sin(x) cos(x)]; % B to v2
+R_y = @(x) [cos(x) 0 sin(x); 0 1 0; -sin(x) 0 cos(x)]; % v2 to v1
+R_z = @(x) [cos(x) -sin(x) 0; sin(x) cos(x) 0; 0 0 1]; % v1 to I
 
-R_B2E = R_z(Psi) * R_y(Theta) * R_x(Phi);
+R_B2E = R_z(Psi)*R_y(Theta)*R_x(Phi); % Rotation matrix Body to Earth frame
 
 % Transfer matrix
 T_B2E = (1/cos(Theta))*[cos(Theta) sin(Theta)*sin(Phi)  sin(Theta)*cos(Phi);
@@ -111,7 +114,7 @@ S = @(x) [0 -x(3) x(2); x(3) 0 -x(1); -x(2) x(1) 0];
 
 M = [mm*eye(3) zeros(3); zeros(3) I_B*eye(3)];
 C = [zeros(3) -S(mm*Velocity_Lin_B); zeros(3) -S(I_B*Velocity_Ang_B)];
-G = [R_B2E*[0; 0; -m*grav]; zeros(3,1)];
+G = [R_B2E'*[0; 0; -mm*grav]; zeros(3,1)];
 U_B = [0; 0; F; T_1; T_2; T_3];
 
 dy(1:3) = R_B2E*Velocity_Lin_B;
@@ -130,7 +133,7 @@ dy(1) = y(2);
 dy(2) = (sPsi*sPhi + cPsi*sTheta*cPhi) * (F/mm);
 
 dy(3) = y(4);
-dy(4) = -(cPsi*sPhi + sPsi*sTheta*cPhi) * (F/mm);
+dy(4) = (-cPsi*sPhi + sPsi*sTheta*cPhi) * (F/mm);
 
 dy(5) = y(6);
 dy(6) = -grav + (cTheta*cPhi)*(F/mm);

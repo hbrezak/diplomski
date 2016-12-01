@@ -19,7 +19,8 @@ QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
-YY = 1; % linear PD control
+YY = 1; % linear PD control with gravity compensation
+
 
 %=========================================================================%
 
@@ -53,6 +54,7 @@ I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 % === CHOOSE DISTURBANCE =================================================%
 
 %=========================================================================%
+% d0=1; Sg=5; % disturbance parameters
 d0=4; Sg=0.1; % disturbance parameters
 
 % --- Reference trajectory parameters ------------------------------------%
@@ -77,7 +79,7 @@ if (QQ == 1)
    xx0(4)=0*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
 end
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
-   xx0(7)=1*0.1; xx0(9)=1*0.1; xx0(11)=1*0.1; % initial angles
+   xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
 end
 %-------------------------------------------------------------------------%
 
@@ -100,14 +102,15 @@ z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))];
 x_d = zeros(size(t)); 
 y_d = zeros(size(t)); 
 
+d_0 = d0*exp(-Sg*(t-T/2).^2);
 %-------------------------------------------------------------------------%
 
 if (QQ == 1)
 % --- MODEL 1 ------------------------------------------------------------%
 figure(1)
-subplot(2,3,1), plot(t,y(:,1),'b', t,x_d,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
-subplot(2,3,2), plot(t,y(:,2),'b', t,y_d,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
-subplot(2,3,3), plot(t,y(:,3),'b', t,z_d,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 10 0 1.2])
+subplot(2,3,1), plot(t,y(:,1),'b', t, x_d,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,2), plot(t,y(:,2),'b', t, y_d,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+subplot(2,3,3), plot(t,y(:,3),'b', t, z_d,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), %axis([0 10 0 1.2])
 subplot(2,3,4), plot(t,y(:,4),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
 subplot(2,3,5), plot(t,y(:,5),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
 subplot(2,3,6), plot(t,y(:,6),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
@@ -185,4 +188,8 @@ end
 figure(5)
 subplot(2,1,1), plot(t, y(:, 18), 'b-', t, z_d, 'r:', 'Linewidth', 4);
 subplot(2,1,2), plot(t, y(:, 19), 'b-', t, z_d, 'r:', 'Linewidth', 4);
+
+% Disturbance
+figure(6)
+plot(t, d_0, 'b-', 'Linewidth', 4);
 %==========================================================================%
