@@ -118,7 +118,7 @@ G = [R_B2E'*[0; 0; -mm*grav]; zeros(3,1)];
 U_B = [0; 0; F; T_1; T_2; T_3];
 
 dy(1:3) = R_B2E*Velocity_Lin_B;
-dy(4:6) = R_B2E*Velocity_Ang_B;
+dy(4:6) = T_B2E*Velocity_Ang_B;
 dy(7:12) = inv(M)*(-C*Velocity_B + G + U_B);
 %-------------------------------------------------------------------------%
 end
