@@ -2,20 +2,20 @@
 clear all; close all; clc;
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D x_d y_d z_d Kest Kf1
+global k_P k_D x_d y_d z_d Ke Ksf
 
 T = 40; % Simulation time
 N = 19; % Number of differential equations
 
 grav = 9.81;
-Kest = 100;
-Kf1 = 1.5;
+Ke = 100; % velocity estimator gain
+Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
 % QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
-QQ = 4; % MODEL 4 (linear quadrotor model)
+% QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
@@ -123,8 +123,8 @@ F=diff(y(:,13))./diff(t);
 T1=diff(y(:,14))./diff(t);
 T2=diff(y(:,15))./diff(t);
 T3=diff(y(:,16))./diff(t);
-d1e_z_est = diff(y(:,17))./diff(t);
-d1Z = diff(y(:,3))./diff(t);
+de_z_est = diff(y(:,17))./diff(t);
+dZ = diff(y(:,3))./diff(t);
 td=t(1:(length(t)-1));
 
 figure(3)
@@ -136,8 +136,8 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-subplot(2,1,1), plot(td, d1e_z_est,'b-', td, d1Z, 'r:', 'linewidth',4), ylabel('d1Z estimated','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
-subplot(2,1,2), plot(t, y(:, 9), 'linewidth',4), ylabel('d1Z from model','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
+subplot(2,1,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('dZ estimated','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
+subplot(2,1,2), plot(t, y(:, 9), 'linewidth',4), ylabel('dZ from model','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
 %-------------------------------------------------------------------------%
 end
 
@@ -162,8 +162,8 @@ F=diff(y(:,13))./diff(t);
 T1=diff(y(:,14))./diff(t);
 T2=diff(y(:,15))./diff(t);
 T3=diff(y(:,16))./diff(t);
-d1e_z_est = diff(y(:,17))./diff(t);
-d1Z = diff(y(:,5))./diff(t);
+de_z_est = diff(y(:,17))./diff(t);
+dZ = diff(y(:,5))./diff(t);
 td=t(1:(length(t)-1));
 
 figure(3)
@@ -174,7 +174,7 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-subplot(2,1,1), plot(td, d1e_z_est,'b-', td, d1Z, 'r:', 'linewidth',4), ylabel('d1Z estimated','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
+subplot(2,1,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('d1Z estimated','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
 subplot(2,1,2), plot(t, y(:, 6), 'linewidth',4), ylabel('d1Z from model','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
 
 

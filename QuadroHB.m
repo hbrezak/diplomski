@@ -1,19 +1,19 @@
 function dy = QuadroHB(t,y)
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D x_d y_d z_d Kest Kf1
+global k_P k_D x_d y_d z_d Ke Ksf
 
 dy = zeros(N, 1);
 
 if (QQ == 1)
 % --- STATE VARIABLES - MODEL 1 ------------------------------------------%
-X=y(1); Xd=y(7); % #TODO: Fix MODEL 1 
-Y=y(2); Yd=y(8);
-Z=y(3); Zd=y(9);
+X=y(1); dX=y(7); % #TODO: Fix MODEL 1 
+Y=y(2); dY=y(8);
+Z=y(3); dZ=y(9);
 
-Phi=y(4); Phid=y(10);
-Theta=y(5); Thetad=y(11);
-Psi=y(6); Psid=y(12);
+Phi=y(4); dPhi=y(10);
+Theta=y(5); dTheta=y(11);
+Psi=y(6); dPsi=y(12);
 
 Position = [X; Y; Z;];
 Angle = [Phi; Theta; Psi];
@@ -25,13 +25,13 @@ end
 
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
 % --- STATE VARIABLES - MODEL 2 - MODEL 3 - MODEL 4 ----------------------%
-X=y(1); Xd=y(2);
-Y=y(3); Yd=y(4);
-Z=y(5); Zd=y(6);
+X=y(1); dX=y(2);
+Y=y(3); dY=y(4);
+Z=y(5); dZ=y(6);
 
-Phi=y(7); Phid=y(8);
-Theta=y(9); Thetad=y(10);
-Psi=y(11); Psid=y(12);
+Phi=y(7); dPhi=y(8);
+Theta=y(9); dTheta=y(10);
+Psi=y(11); dPsi=y(12);
 %-------------------------------------------------------------------------%
 end
 
@@ -40,13 +40,13 @@ if (t>3*T/4)    % referentna trajektorija
     z_d=0;
 end
 
-d1x_d = 0; d1y_d = 0; d1z_d = 0;
+dx_d = 0; dy_d = 0; dz_d = 0;
 %-------------------------------------------------------------------------%
 
 % --- Error variables ----------------------------------------------------% 
-e_x = X-x_d; d1e_x = Xd-d1x_d; 
-e_y = Y-y_d; d1e_y = Yd-d1y_d;
-e_z = Z-z_d; d1e_z = Zd-d1z_d;
+e_x = X-x_d; de_x = dX-dx_d; 
+e_y = Y-y_d; de_y = dY-dy_d;
+e_z = Z-z_d; de_z = dZ-dz_d;
 %-------------------------------------------------------------------------%
 
 % --- Quadrotor parameters(nominal) --------------------------------------%
@@ -63,15 +63,15 @@ if (YY == 1)
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-d1e_z_est = -Kest*(y(17) - e_z); % y(17) = e_z_est
+de_z_est = -Ke*(y(17) - e_z); % y(17) = e_z_est
 
 % U_0 = m*(grav - k_D*Zd - k_P*e_z); % z velocity is measured (Zd known)
 
-U_0 = m*(grav - k_D*d1e_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
+U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
 
-U_1 = -k_D*Phid - k_P*Phi;
-U_2 = -k_D*Thetad - k_P*Theta;
-U_3 = -k_D*Psid - k_P*Psi;
+U_1 = -k_D*dPhi - k_P*Phi;
+U_2 = -k_D*dTheta - k_P*Theta;
+U_3 = -k_D*dPsi - k_P*Psi;
 %-------------------------------------------------------------------------%
 end
 
@@ -136,13 +136,13 @@ dy(5) = y(6);
 dy(6) = -grav + (cTheta*cPhi)*(F/mm);
 
 dy(7) = y(8);
-dy(8) = ((Iy-Iz)/Ix)*Thetad*Psid + (T_1/Ixx);
+dy(8) = ((Iy-Iz)/Ix)*dTheta*dPsi + (T_1/Ixx);
 
 dy(9) = y(10);
-dy(10) = ((Iz-Ix)/Iy)*Phid*Psid + (T_2/Iyy);
+dy(10) = ((Iz-Ix)/Iy)*dPhi*dPsi + (T_2/Iyy);
 
 dy(11) = y(12);
-dy(12) = ((Ix-Iy)/Iz)*Phid*Thetad + (T_3/Izz);
+dy(12) = ((Ix-Iy)/Iz)*dPhi*dTheta + (T_3/Izz);
 
 %-------------------------------------------------------------------------%
 end
@@ -198,8 +198,8 @@ dy(14) = T_1;
 dy(15) = T_2;
 dy(16) = T_3;
 
-dy(17) = d1e_z_est; % first order differentiator (velocity estimate)
-dy(18) = -Kf1*(y(18) - z_d); % 1st order smoothing filter
-dy(19) = -Kf1*(y(19) - y(18)); % 2nd order smoothing filter
+dy(17) = de_z_est; % first order differentiator (velocity estimate)
+dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
+dy(19) = -Ksf*(y(19) - y(18)); % 2nd order smoothing filter
 
 
