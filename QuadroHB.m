@@ -60,7 +60,8 @@ Iz = 1.0*Izz;
 
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
-e_z = Z - y(18);
+% e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
 
 d1e_z_est = -Kest*(y(17) - e_z); % y(17) = e_z_est
 
@@ -197,7 +198,8 @@ dy(14) = T_1;
 dy(15) = T_2;
 dy(16) = T_3;
 
-dy(17) = d1e_z_est;
-dy(18) = -Kf1*(y(18) - z_d);
+dy(17) = d1e_z_est; % first order differentiator (velocity estimate)
+dy(18) = -Kf1*(y(18) - z_d); % 1st order smoothing filter
+dy(19) = -Kf1*(y(19) - y(18)); % 2nd order smoothing filter
 
 

@@ -5,11 +5,11 @@ global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
 global k_P k_D x_d y_d z_d Kest Kf1
 
 T = 40; % Simulation time
-N = 18; % Number of differential equations
+N = 19; % Number of differential equations
 
 grav = 9.81;
 Kest = 100;
-Kf1 = 1.2;
+Kf1 = 1.5;
 
 % === CHOOSE MODEL =======================================================%
 % QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
@@ -177,8 +177,12 @@ figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijed
 subplot(2,1,1), plot(td, d1e_z_est,'b-', td, d1Z, 'r:', 'linewidth',4), ylabel('d1Z estimated','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
 subplot(2,1,2), plot(t, y(:, 6), 'linewidth',4), ylabel('d1Z from model','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
 
+
 %--------------------------------------------------------------%
 end
 
-
+% Filtered reference
+figure(5)
+subplot(2,1,1), plot(t, y(:, 18), 'b-', t, z_d, 'r:', 'Linewidth', 4);
+subplot(2,1,2), plot(t, y(:, 19), 'b-', t, z_d, 'r:', 'Linewidth', 4);
 %==========================================================================%
