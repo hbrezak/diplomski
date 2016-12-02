@@ -1,6 +1,6 @@
 function dy = QuadroHB(t,y)
 
-global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
+global N T QQ YY DD grav mm Ixx Iyy Izz I_B d0 Sg
 global k_P k_D kk_P kk_D kk_I x_d y_d z_d Ke Ksf
 
 dy = zeros(N, 1);
@@ -52,7 +52,7 @@ e_z = Z-z_d; de_z = dZ-dz_d;
 % --- Quadrotor parameters(nominal) --------------------------------------%
 % Parametri: m, Ix, Iy, Iz su pretpostavljene vrijednosti realnih
 % parametara mm, Ixx, Iyy, Izz koje koristimo u kontroleru (robusnost)
-m = 1.0*mm; 
+m = 0.80*mm; 
 Ix = 1.0*Ixx; 
 Iy = 1.0*Iyy; 
 Iz = 1.0*Izz; 
@@ -66,7 +66,7 @@ e_z = Z - y(19); % reference smoothing filter 2nd order
 de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
 
 % U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
- U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
+U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
 
 U_1 = -k_D*dPhi - k_P*Phi;
 U_2 = -k_D*dTheta - k_P*Theta;
@@ -76,8 +76,8 @@ end
 
 if (YY == 2)
 % --- PID controller ------------------------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
-e_z = Z - y(19); % reference smoothing filter 2nd order
+e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
 
 de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
 
@@ -100,13 +100,22 @@ end
 % ----------------------------------------
 
 % Disturbances (udar vjetra):
-d_0 = 0*d0*exp(-Sg*(t-T/2)^2); 
-d_1 = 0*d0*exp(-Sg*(t-T/2)^2); 
-d_2 = 0*d0*exp(-Sg*(t-T/2)^2); 
-d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
+if (DD == 1)
+    d_0 = 0*d0*exp(-Sg*(t-T/2)^2);
+    d_1 = 1*d0*exp(-Sg*(t-T/2)^2);
+    d_2 = 1*d0*exp(-Sg*(t-T/2)^2);
+    d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
+end
 
-F = U_0 + d_0 + 2;
-T_1 = U_1 + d_1 + 1;
+if (DD == 2)
+    d_0 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_1 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_2 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_3 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+end
+    
+F = U_0 + d_0;
+T_1 = U_1 + d_1;
 T_2 = U_2 + d_2;
 T_3 = U_3 + d_3;
 

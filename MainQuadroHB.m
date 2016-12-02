@@ -1,7 +1,7 @@
 % Quadrotor stabilization algorithms comparison
 clear all; close all; clc;
 
-global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
+global N T QQ YY DD grav mm Ixx Iyy Izz I_B d0 Sg
 global k_P k_D kk_P kk_D kk_I x_d y_d z_d Ke Ksf
 
 T = 40; % Simulation time
@@ -12,14 +12,14 @@ Ke = 100; % velocity estimator gain
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
 % QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
-QQ = 4; % MODEL 4 (linear quadrotor model)
+% QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
-%YY = 1; % linear PD control with gravity compensation
+% YY = 1; % linear PD control with gravity compensation
 YY = 2; % PID control with gravity compensation
 
 
@@ -53,10 +53,15 @@ I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 
 
 % === CHOOSE DISTURBANCE =================================================%
+% --- Occurence:
+% DD = 1; % single wind gust at T/2
+DD = 2; % four wind gusts (i) at 5+i*T/4
 
+% --- Shape:
+% d0=1; Sg=5; % short duration, small amplitude
+d0=4; Sg=0.1; % long duration, large amplitude
 %=========================================================================%
-% d0=1; Sg=5; % disturbance parameters
-d0=4; Sg=0.1; % disturbance parameters
+
 
 % --- Reference trajectory parameters ------------------------------------%
 x_d = 0; y_d = 0; z_d = 1;
@@ -109,7 +114,12 @@ z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))];
 x_d = zeros(size(t)); 
 y_d = zeros(size(t)); 
 
+if DD == 1
 d_0 = d0*exp(-Sg*(t-T/2).^2);
+end
+if DD == 2
+d_0 = d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2);
+end
 %-------------------------------------------------------------------------%
 
 if (QQ == 1)
