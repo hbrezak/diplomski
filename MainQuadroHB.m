@@ -2,24 +2,25 @@
 clear all; close all; clc;
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D x_d y_d z_d Ke Ksf
+global k_P k_D kk_P kk_D kk_I x_d y_d z_d Ke Ksf
 
 T = 40; % Simulation time
-N = 19; % Number of differential equations
+N = 23; % Number of differential equations
 
 grav = 9.81;
 Ke = 100; % velocity estimator gain
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
 % QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
-% QQ = 4; % MODEL 4 (linear quadrotor model)
+QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
-YY = 1; % linear PD control with gravity compensation
+%YY = 1; % linear PD control with gravity compensation
+YY = 2; % PID control with gravity compensation
 
 
 %=========================================================================%
@@ -68,8 +69,14 @@ pol_1 = -2;
 pol_2 = -3;
 pol_3 = -4;
 
+% PD:
 k_P = pol_1 * pol_2;
 k_D = -(pol_1 + pol_2);
+
+% PID:
+kk_P = mm*(pol_1*pol_2 + pol_1*pol_3 + pol_2*pol_3);
+kk_D = -mm*(pol_1+pol_2+pol_3); 
+kk_I = -mm*pol_1*pol_2*pol_3;
 
 %-------------------------------------------------------------------------%
 

@@ -1,7 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N T QQ YY grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D x_d y_d z_d Ke Ksf
+global k_P k_D kk_P kk_D kk_I x_d y_d z_d Ke Ksf
 
 dy = zeros(N, 1);
 
@@ -61,17 +61,32 @@ Iz = 1.0*Izz;
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
+e_z = Z - y(19); % reference smoothing filter 2nd order
 
 de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
 
-U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
-
-% U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
+% U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
+ U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
 
 U_1 = -k_D*dPhi - k_P*Phi;
 U_2 = -k_D*dTheta - k_P*Theta;
 U_3 = -k_D*dPsi - k_P*Psi;
+%-------------------------------------------------------------------------%
+end
+
+if (YY == 2)
+% --- PID controller ------------------------------------------------------%
+% e_z = Z - y(18); % reference smoothing filter 1st order
+e_z = Z - y(19); % reference smoothing filter 2nd order
+
+de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+
+% U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
+U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
+
+U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
+U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
+U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
 
@@ -87,11 +102,11 @@ end
 % Disturbances (udar vjetra):
 d_0 = 0*d0*exp(-Sg*(t-T/2)^2); 
 d_1 = 0*d0*exp(-Sg*(t-T/2)^2); 
-d_2 = 1*d0*exp(-Sg*(t-T/2)^2); 
+d_2 = 0*d0*exp(-Sg*(t-T/2)^2); 
 d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
 
-F = U_0 + d_0;
-T_1 = U_1 + d_1;
+F = U_0 + d_0 + 2;
+T_1 = U_1 + d_1 + 1;
 T_2 = U_2 + d_2;
 T_3 = U_3 + d_3;
 
@@ -139,13 +154,13 @@ dy(5) = y(6);
 dy(6) = -grav + (cTheta*cPhi)*(F/mm);
 
 dy(7) = y(8);
-dy(8) = ((Iy-Iz)/Ix)*dTheta*dPsi + (T_1/Ixx);
+dy(8) = ((Iyy-Izz)/Ixx)*dTheta*dPsi + (T_1/Ixx);
 
 dy(9) = y(10);
-dy(10) = ((Iz-Ix)/Iy)*dPhi*dPsi + (T_2/Iyy);
+dy(10) = ((Izz-Ixx)/Iyy)*dPhi*dPsi + (T_2/Iyy);
 
 dy(11) = y(12);
-dy(12) = ((Ix-Iy)/Iz)*dPhi*dTheta + (T_3/Izz);
+dy(12) = ((Ixx-Iyy)/Izz)*dPhi*dTheta + (T_3/Izz);
 
 %-------------------------------------------------------------------------%
 end
@@ -204,5 +219,11 @@ dy(16) = T_3;
 dy(17) = de_z_est; % first order differentiator (velocity estimate)
 dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
 dy(19) = -Ksf*(y(19) - y(18)); % 2nd order smoothing filter
+
+% PID integral part
+dy(20) = e_z;
+dy(21) = Phi;
+dy(22) = Theta;
+dy(23) = Psi;
 
 
