@@ -55,7 +55,8 @@ I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 % === CHOOSE DISTURBANCE =================================================%
 % --- Occurence:
 % DD = 1; % single wind gust at T/2
-DD = 2; % four wind gusts (i) at 5+i*T/4
+% DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
+DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 
 % --- Shape:
 % d0=1; Sg=5; % short duration, small amplitude
@@ -119,6 +120,9 @@ d_0 = d0*exp(-Sg*(t-T/2).^2);
 end
 if DD == 2
 d_0 = d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2);
+end
+if DD == 3
+d_0 = d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2);
 end
 %-------------------------------------------------------------------------%
 
