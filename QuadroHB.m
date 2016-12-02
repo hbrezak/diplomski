@@ -1,7 +1,7 @@
 function dy = QuadroHB(t,y)
 
-global N T QQ YY DD grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D kk_P kk_D kk_I x_d y_d z_d Ke Ksf
+global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke Ksf
 
 dy = zeros(N, 1);
 
@@ -36,11 +36,23 @@ Psi=y(11); dPsi=y(12);
 end
 
 % --- Reference trajectory parameters ------------------------------------%
-if (t>3*T/4)    % referentna trajektorija
-    z_d=0;
+if (RR == 1)
+    if (t>3*T/4)    % referentna trajektorija
+        z_d=0;
+    end
+    dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+    dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;     
 end
-
-dx_d = 0; dy_d = 0; dz_d = 0;
+if (RR == 2)
+    x_d = -Ay0*0 + Ay0*cos(Vx0*t);
+    y_d = Ay0*sin(Vx0*t);
+    z_d = Vx0*t;    
+    
+    dx_d = -Ay0*Vx0*sin(Vx0*t); ddx_d = -Ay0*Vx0^2*cos(Vx0*t); d3x_d = Ay0*Vx0^3*sin(Vx0*t); d4x_d = Ay0*Vx0^4*cos(Vx0*t);
+    dy_d = Ay0*Vx0*cos(Vx0*t); ddy_d = -Ay0*Vx0^2*sin(Vx0*t); d3y_d = -Ay0*Vx0^3*cos(Vx0*t); d4y_d = Ay0*Vx0^4*sin(Vx0*t);
+    dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
+end
 %-------------------------------------------------------------------------%
 
 % --- Error variables ----------------------------------------------------% 
@@ -75,7 +87,7 @@ U_3 = -k_D*dPsi - k_P*Psi;
 end
 
 if (YY == 2)
-% --- PID controller ------------------------------------------------------%
+% --- PID controller -----------------------------------------------------%
 e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
@@ -90,20 +102,46 @@ U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
 
+if (YY == 3)
+% --- Trajectory tracking control law ------------------------------------%
+e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
+
+de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+
+% U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
+U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
+
+dde_x = (grav/m)*Theta - ddx_d;
+d3e_x = (grav/m)*dTheta - d3x_d;
+
+dde_y = (-grav/m)*Phi - ddy_d;
+d3e_y = (-grav/m)*dPhi - d3y_d;
+
+U_1 = ((-m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
+U_2 = ((m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
+U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
+%-------------------------------------------------------------------------%
+end
+
 % #TODO: saturacija motora ---------------
 % probably good with l = 0.1; d = 0.0000001; b=0.0000008;
 % E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
 % Omega = (inv(E_B)*[U_0 U_1 U_2 U_3]');
-% kg = 1885^2; % motor ang. velocity (rad/s), original 2400kV*11.1V reduced by more than 20% for prop
+% kg = 1885^2; % max motor ang. velocity (rad/s), original 2400kV*11.1V reduced by more than 20% for prop
 % Omega = kg.*tanh(Omega./kg);
 % FF = E_B * Omega;
 % ----------------------------------------
 
-% Disturbances (udar vjetra):
+% --- Disturbances (wind gust) -------------------------------------------%
+if (DD == 0)
+    d_0=0; d_1=0; d_2=0; d_3=0;
+end
+
 if (DD == 1)
-    d_0 = 0*d0*exp(-Sg*(t-T/2)^2);
+    d_0 = 1*d0*exp(-Sg*(t-T/2)^2);
     d_1 = 1*d0*exp(-Sg*(t-T/2)^2);
-    d_2 = 1*d0*exp(-Sg*(t-T/2)^2);
+    d_2 = 0*d0*exp(-Sg*(t-T/2)^2);
     d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
 end
 
@@ -115,7 +153,7 @@ if (DD == 2)
 end
 
 if (DD == 3)
-    d_0 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_0 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
     d_1 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
     d_2 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
     d_3 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
@@ -125,6 +163,7 @@ F = U_0 + d_0;
 T_1 = U_1 + d_1;
 T_2 = U_2 + d_2;
 T_3 = U_3 + d_3;
+%-------------------------------------------------------------------------%
 
 if (QQ == 1)
 % --- MODEL 1 ------------------------------------------------------------%

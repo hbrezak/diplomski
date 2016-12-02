@@ -1,8 +1,8 @@
 % Quadrotor stabilization algorithms comparison
 clear all; close all; clc;
 
-global N T QQ YY DD grav mm Ixx Iyy Izz I_B d0 Sg
-global k_P k_D kk_P kk_D kk_I x_d y_d z_d Ke Ksf
+global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke Ksf
 
 T = 40; % Simulation time
 N = 23; % Number of differential equations
@@ -12,24 +12,54 @@ Ke = 100; % velocity estimator gain
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
 % QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
-% QQ = 4; % MODEL 4 (linear quadrotor model)
+QQ = 4; % MODEL 4 (linear quadrotor model)
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
-YY = 2; % PID control with gravity compensation
-
-
+          %         X - not controlled; Y - not controlled; Z - tracking
+          
+% YY = 2; % PID control with gravity compensation
+          %         X - not controlled; Y - not controlled; Z - tracking
+          
+YY = 3; % Trajectory tracking control law - Z axis PID controller
+          %         X - tracking only; Y - tracking only; Z - tracking, dist.rejection          
 %=========================================================================%
 
 % === CHOOSE SOLVER ======================================================%
-WW = 1; % RK4
-
+WW = 1; % Fixed-step Runge-Kutta 4th order
+% WW = 2; % ODE Runge-Kutta (variable step)
 %=========================================================================%
 
+% === CHOOSE REFERENCE ===================================================%
+% RR = 1; % Z step reference, X & Y = 0
+RR = 2; % Spiral trajectory
+%=========================================================================%
+
+% === CHOOSE DISTURBANCE =================================================%
+% --- Occurence:
+% DD = 0; % without disturbance
+DD = 1; % single wind gust at T/2
+% DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
+% DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
+
+% --- Shape:
+% d0=1; Sg=5; % short duration, small amplitude
+d0=4; Sg=0.1; % long duration, large amplitude
+%=========================================================================%
+
+% === CHOOSE INITIAL CONDITIONS ==========================================%
+xx0 = zeros(1, N);
+if (QQ == 1)
+   xx0(4)=0*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
+end
+if (QQ == 2)||(QQ == 3)||(QQ == 4)
+   xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
+end
+%=========================================================================%
 
 % === CHOOSE QUADROTOR PARAMETERS ========================================%
 % "Image Based Visual Servoing for an Autonomous Quadrotor with Adaptive Backstepping Control":
@@ -52,25 +82,17 @@ I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 %=========================================================================%
 
 
-% === CHOOSE DISTURBANCE =================================================%
-% --- Occurence:
-% DD = 1; % single wind gust at T/2
-% DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
-DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
-
-% --- Shape:
-% d0=1; Sg=5; % short duration, small amplitude
-d0=4; Sg=0.1; % long duration, large amplitude
-%=========================================================================%
-
-
 % --- Reference trajectory parameters ------------------------------------%
-x_d = 0; y_d = 0; z_d = 1;
+if (RR == 1)
+    x_d = 0; y_d = 0; z_d = 1;
+end
+if (RR == 2)
+    Vx0=0.5; Ay0=1;
+end
 %-------------------------------------------------------------------------%
 
-
 % --- Controller parameters ----------------------------------------------%
-% Polovi:
+% Poles:
 pol_1 = -2;
 pol_2 = -3;
 pol_3 = -4;
@@ -84,37 +106,56 @@ kk_P = mm*(pol_1*pol_2 + pol_1*pol_3 + pol_2*pol_3);
 kk_D = -mm*(pol_1+pol_2+pol_3); 
 kk_I = -mm*pol_1*pol_2*pol_3;
 
+% Poles:
+pol_1 = -3;
+pol_2 = -3;
+pol_3 = -4;
+pol_4 = -5;
+
+% Control for X and Y tracking:
+k_3 = -pol_1 - pol_2 - pol_3 - pol_4;
+k_2 = pol_1*pol_2 + pol_2*pol_3 + pol_3*pol_4 + pol_1*pol_4 + pol_2*pol_4 + pol_3*pol_1;
+k_1 = -pol_1*pol_2*pol_3 - pol_1*pol_2*pol_4 - pol_2*pol_3*pol_4 - pol_1*pol_3*pol_4; 
+k_0 = pol_1*pol_2*pol_3*pol_4;
 %-------------------------------------------------------------------------%
 
-% --- Initial conditions -------------------------------------------------%
-xx0 = zeros(1, N);
-if (QQ == 1)
-   xx0(4)=0*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
-end
-if (QQ == 2)||(QQ == 3)||(QQ == 4)
-   xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
-end
-%-------------------------------------------------------------------------%
+
 
 
 if (WW == 1)
-% Fixed-step Runge-Kutta 4th order
+% --- Fixed-step Runge-Kutta 4th order -----------------------------------%
 tspan = [0 T]; Nstep = 10000; DeltaT = T/Nstep;
 [t, y] = rk4(@QuadroHB, tspan, xx0, DeltaT);
+end
+%-------------------------------------------------------------------------%
+
+if (WW == 2)
+% --- ODE Runge-Kutta (variable step) ----------------------------------%
+options = odeset('RelTol',1e-6,'AbsTol',1e-6);
+[t,y] = ode45('QuadroHB',[0 T],xx0,options);
+%-------------------------------------------------------------------------%
 end
 
 
 % === PLOTS ==============================================================%
 set(0, 'DefaultFigurePosition', [1367 -281 1920 973]); % set all plots position to center of secondary monitor at home
 
-% --- Reference trajectories ---------------------------------------------%
+% --- Reference trajectories for ploting ---------------------------------%
+if (RR == 1) 
+    x_d = zeros(size(t));
+    y_d = zeros(size(t));
+    z_d = zeros(size(t));
+    z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))];    
+end
+if (RR == 2)
+    x_d = -Ay0*0 + Ay0*cos(Vx0*t);
+    y_d = Ay0*sin(Vx0*t);
+    z_d = Vx0*t;
+end     
 
-z_d = zeros(size(t)); 
-z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))]; 
-
-x_d = zeros(size(t)); 
-y_d = zeros(size(t)); 
-
+if DD == 0
+d_0 = 0*t;
+end
 if DD == 1
 d_0 = d0*exp(-Sg*(t-T/2).^2);
 end
