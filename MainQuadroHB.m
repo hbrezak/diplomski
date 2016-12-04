@@ -5,7 +5,7 @@ global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke Ksf
 
 T = 40; % Simulation time
-N = 23; % Number of differential equations
+N = 24; % Number of differential equations
 
 grav = 9.81;
 Ke = 100; % velocity estimator gain
@@ -20,13 +20,9 @@ QQ = 4; % MODEL 4 (linear quadrotor model)
 
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
-          %         X - not controlled; Y - not controlled; Z - tracking
-          
 % YY = 2; % PID control with gravity compensation
-          %         X - not controlled; Y - not controlled; Z - tracking
-          
-YY = 3; % Trajectory tracking control law - Z axis PID controller
-          %         X - tracking only; Y - tracking only; Z - tracking, dist.rejection          
+% YY = 3; % Trajectory tracking control law - Z axis PID controller
+YY = 4; % Sliding mode 1st order (sign)
 %=========================================================================%
 
 % === CHOOSE SOLVER ======================================================%
@@ -35,14 +31,14 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 %=========================================================================%
 
 % === CHOOSE REFERENCE ===================================================%
-% RR = 1; % Z step reference, X & Y = 0
-RR = 2; % Spiral trajectory
+RR = 1; % Z step reference, X & Y = 0
+% RR = 2; % Spiral trajectory
 %=========================================================================%
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Occurence:
-% DD = 0; % without disturbance
-DD = 1; % single wind gust at T/2
+DD = 0; % without disturbance
+% DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 
@@ -239,9 +235,9 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-subplot(2,1,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('Z axis velocity (m/s^2)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'),
+subplot(2,1,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('Z axis velocity (m/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'),
 legend('Estimated velocity', 'Exact velocity');
-subplot(2,1,2), plot(t, y(:, 6), 'linewidth',4), ylabel('Z axis velocity (m/s^2)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'),
+subplot(2,1,2), plot(t, y(:, 6), 'linewidth',4), ylabel('Z axis velocity (m/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'),
 legend('Pure derivative velocity');
 %--------------------------------------------------------------%
 end
@@ -250,10 +246,17 @@ end
 figure(5)
 subplot(2,1,1), plot(t, y(:, 18), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'),
 legend('1st order smoothing filter', 'Z position reference');
-subplot(2,1,2), plot(t, y(:, 19), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times')
+subplot(2,1,2), plot(t, y(:, 19), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'),
 legend('2nd order smoothing filter', 'Z position reference');
 
 % Disturbance
 figure(6)
 plot(t, d_0, 'b-', 'Linewidth', 4), ylabel('Wind gust', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times');
-%==========================================================================%
+
+if (YY == 4)
+    s = diff(y(:,24))./diff(t);
+    figure(20)
+    plot(td, s, 'b-', 'Linewidth', 4), ylabel('error', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
+    legend('Sliding variable s'), grid 'on';
+end
+%=========================================================================%

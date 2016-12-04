@@ -64,7 +64,7 @@ e_z = Z-z_d; de_z = dZ-dz_d;
 % --- Quadrotor parameters(nominal) --------------------------------------%
 % Parametri: m, Ix, Iy, Iz su pretpostavljene vrijednosti realnih
 % parametara mm, Ixx, Iyy, Izz koje koristimo u kontroleru (robusnost)
-m = 0.80*mm; 
+m = 1.0*mm; 
 Ix = 1.0*Ixx; 
 Iy = 1.0*Iyy; 
 Iz = 1.0*Izz; 
@@ -120,6 +120,27 @@ d3e_y = (-grav/m)*dPhi - d3y_d;
 
 U_1 = ((-m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
 U_2 = ((m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
+U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
+%-------------------------------------------------------------------------%
+end
+
+if (YY == 4)
+% --- Sliding mode 1st order (sign) --------------------------------------%
+e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
+
+de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+
+p = 1; U = 40;
+% s = de_z + p*e_z;
+s = de_z_est + p*e_z;
+
+% U_0 = -U*sign(s);
+% U_0 = m*(grav - U*sign(s));
+U_0 = m*(grav - U*s - U*sign(s));
+
+U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
+U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
 U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
@@ -280,5 +301,9 @@ dy(20) = e_z;
 dy(21) = Phi;
 dy(22) = Theta;
 dy(23) = Psi;
+
+if (YY == 4) 
+    dy(24) = s;
+end
 
 
