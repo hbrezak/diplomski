@@ -315,9 +315,6 @@ if (YY == 4)
     dy(24) = s;
 end
 
-if (t == T)
-    fprintf('%s \n', 'Gotovo!');
-end
 
 end % function QuadroHB
 
