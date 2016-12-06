@@ -13,9 +13,9 @@ Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
 % QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
-% QQ = 2; % MODEL 2 (simplified rigid-body dynamic model)
-% QQ = 3; % MODEL 3 (more simplified rigid-body dynamic model)
-QQ = 4; % MODEL 4 (linear quadrotor model)
+% QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
+% QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
+QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
@@ -59,13 +59,13 @@ end
 
 % === CHOOSE QUADROTOR PARAMETERS ========================================%
 % "Image Based Visual Servoing for an Autonomous Quadrotor with Adaptive Backstepping Control":
-mm = 1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24; 
+% mm = 1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24; 
 
 % "Flatness-based control of a quadrotor helicopter via feedforward linearization":
 % mm=0.5; Ixx = 0.005; Iyy = 0.005; Izz = 0.009; 
 
 % "Dynamic modeling and nonlinear control strategy for an underactuated quad rotor rotorcraft":
-% mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309; 
+mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309; 
 
 % "Backstepping Control for a Quadrotor Helicopter":
 % mm=2; Ixx = 1.2416; Iyy = 1.2416; Izz = 2.4832; l = 0.1; d = 0.0000001; b=0.0000008;
@@ -257,6 +257,6 @@ if (YY == 4)
     s = diff(y(:,24))./diff(t);
     figure(20)
     plot(td, s, 'b-', 'Linewidth', 4), ylabel('error', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
-    legend('Sliding variable s'), grid 'on';
+    legend('Sliding variable s'), grid 'on', axis([0 20 -0.8 0.8]);
 end
 %=========================================================================%
