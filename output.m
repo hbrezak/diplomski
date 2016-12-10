@@ -9,6 +9,8 @@ switch YY
         controller = 'Trajectory tracking control law - Z axis PID controller';
     case 4
         controller = 'Sliding mode 1st order (sign)';
+    case 5
+        controller = 'Super-twisting';
     otherwise
         controller = 'Invalid controller selection';
 end

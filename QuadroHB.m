@@ -153,6 +153,36 @@ U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
 
+if (YY == 5)
+% --- Super-twisting --------------------------------------%
+e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
+
+de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+
+p = 1; U = 50; % 20, 50, 80, 100
+s = de_z + p*e_z;
+% s = de_z_est + p*e_z;
+% s = de_z_est + (k_P/k_D)*e_z;
+
+Pn = -sqrt(U) * sqrt(abs(s)) * sign(s);
+dIn = -1.1 * U * sign(s);
+In = y(25);
+
+% U_0 = Pn + In;
+% U_0 = m*(Pn + In);
+% U_0 = m*(grav + Pn + In);
+% U_0 = m*(grav - U*s + Pn + In);
+
+s = de_z + (k_P/k_D)*e_z;
+U_0 = m*(grav - k_D*s + Pn + In);
+
+U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
+U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
+U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
+%-------------------------------------------------------------------------%
+end
+
 % #TODO: saturacija motora ---------------
 % probably good with l = 0.1; d = 0.0000001; b=0.0000008;
 % E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
@@ -312,9 +342,11 @@ dy(21) = Phi;
 dy(22) = Theta;
 dy(23) = Psi;
 
-if (YY == 4) 
+if (YY == 4) || (YY == 5)
     dy(24) = s;
 end
+
+dy(25) = dIn;
 
 
 end % function QuadroHB
