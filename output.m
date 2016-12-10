@@ -51,6 +51,7 @@ fprintf('Selected controller:  YY = %d - %s \n', YY, controller);
 fprintf('Selected solver:      WW = %d - %s \n', WW, solver);
 fprintf('Selected reference:   RR = %d - %s \n', RR, reference);
 fprintf('Selected disturbance: DD = %d - %s \n', DD, disturbance);
+fprintf('\nRunning...\n');
 
 end
 

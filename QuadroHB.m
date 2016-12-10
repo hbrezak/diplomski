@@ -126,25 +126,26 @@ end
 
 if (YY == 4)
 % --- Sliding mode 1st order (sign) --------------------------------------%
-e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(18); % reference smoothing filter 1st order
+e_z = Z - y(19); % reference smoothing filter 2nd order
 
 de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
 
 p = 1; eps = 0.01;
-U = 20; % 4 values: 20, 50, 100, 150
+U = 20; % 4 values tested: 20, 50, 100, 150
 % s = de_z + p*e_z;
 s = de_z_est + p*e_z;
 
 % U_0 = -U*sign(s);
 % U_0 = -m*U*sign(s);
 % U_0 = m*(grav - U*sign(s));
-U_0 = m*(grav - U*s - U*sign(s));
-
-% s = de_z_est + (k_P/k_D)*e_z;
-% U_0 = m*(grav - k_D*s - k_D*sign(s));
+% U_0 = m*(grav - U*s - U*sign(s));
 
 % U_0 = m*(grav - U*s - U*( s / (abs(s) + eps) ) );
+
+s = de_z_est + (k_P/k_D)*e_z;
+% U_0 = m*(grav - k_D*s - k_D*sign(s));
+U_0 = m*(grav - k_D*s - k_D*( s / (abs(s) + eps) ) );
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);

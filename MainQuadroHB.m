@@ -12,10 +12,10 @@ Ke = 100; % velocity estimator gain
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
@@ -70,8 +70,8 @@ mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309;
 % "Backstepping Control for a Quadrotor Helicopter":
 % mm=2; Ixx = 1.2416; Iyy = 1.2416; Izz = 2.4832; l = 0.1; d = 0.0000001; b=0.0000008;
     % l - dist to COM; b - thrust factor; d - drag factor
-    % (l, b, d) notation used in bible; (d, /, c)
-    % values l,d,b modified from original paper data
+    % (l, b, d) notation used in bible; 
+    % values l,d,b modified from original paper data (d, /, c)
 
 Ixy = 0; Iyz = 0; Ixz = 0;
 I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
@@ -131,6 +131,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 %-------------------------------------------------------------------------%
 end
 
+fprintf('Done! \n');
 
 % === PLOTS ==============================================================%
 set(0, 'DefaultFigurePosition', [1367 -281 1920 973]); % set all plots position to center of secondary monitor at home
