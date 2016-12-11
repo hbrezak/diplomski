@@ -12,10 +12,10 @@ Ke = 100; % velocity estimator gain
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%

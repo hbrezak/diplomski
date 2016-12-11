@@ -144,8 +144,8 @@ s = de_z_est + p*e_z;
 % U_0 = m*(grav - U*s - U*( s / (abs(s) + eps) ) );
 
 s = de_z_est + (k_P/k_D)*e_z;
-% U_0 = m*(grav - k_D*s - k_D*sign(s));
-U_0 = m*(grav - k_D*s - k_D*( s / (abs(s) + eps) ) );
+U_0 = m*(grav - k_D*s - k_D*sign(s));
+% U_0 = m*(grav - k_D*s - k_D*( s / (abs(s) + eps) ) );
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -160,21 +160,21 @@ e_z = Z - y(18); % reference smoothing filter 1st order
 
 de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
 
-p = 1; U = 50; % 20, 50, 80, 100
-s = de_z + p*e_z;
+p = 1; U = 20; % 20, 50, 80, 100
+% s = de_z + p*e_z;
 % s = de_z_est + p*e_z;
-% s = de_z_est + (k_P/k_D)*e_z;
+s = de_z_est + (k_P/k_D)*e_z;
 
 Pn = -sqrt(U) * sqrt(abs(s)) * sign(s);
 dIn = -1.1 * U * sign(s);
 In = y(25);
 
-% U_0 = Pn + In;
+% U_0 = Pn + In; % add pure super-twisting
 % U_0 = m*(Pn + In);
 % U_0 = m*(grav + Pn + In);
 % U_0 = m*(grav - U*s + Pn + In);
 
-s = de_z + (k_P/k_D)*e_z;
+%s = de_z_est + (k_P/k_D)*e_z;
 U_0 = m*(grav - k_D*s + Pn + In);
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
@@ -343,10 +343,14 @@ dy(22) = Theta;
 dy(23) = Psi;
 
 if (YY == 4) || (YY == 5)
-    dy(24) = s;
+    dy(24) = s;    
 end
 
-dy(25) = dIn;
+if (YY == 5)
+    dy(25) = dIn;
+end
+
+
 
 
 end % function QuadroHB
