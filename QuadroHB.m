@@ -72,10 +72,11 @@ Iz = 1.0*Izz;
 
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
-e_z = Z - y(19); % reference smoothing filter 2nd order
+e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
 
 de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+%de_z_est = -Ke*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
 
 % U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
 U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
@@ -349,6 +350,7 @@ end
 if (YY == 5)
     dy(25) = dIn;
 end
+dy(26) = -Ke*sign(y(17)-e_z);
 
 
 
