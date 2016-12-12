@@ -1,6 +1,6 @@
 function dy = QuadroHB(t,y)
 
-global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0
+global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke Ksf
 
 dy = zeros(N, 1);
@@ -37,11 +37,12 @@ end
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
+    dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+    
     if (t>3*T/4)    % referentna trajektorija
         z_d=0;
     end
-    dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-    dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
     dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;     
 end
 if (RR == 2)
@@ -52,6 +53,14 @@ if (RR == 2)
     dx_d = -Ay0*Vx0*sin(Vx0*t); ddx_d = -Ay0*Vx0^2*cos(Vx0*t); d3x_d = Ay0*Vx0^3*sin(Vx0*t); d4x_d = Ay0*Vx0^4*cos(Vx0*t);
     dy_d = Ay0*Vx0*cos(Vx0*t); ddy_d = -Ay0*Vx0^2*sin(Vx0*t); d3y_d = -Ay0*Vx0^3*cos(Vx0*t); d4y_d = Ay0*Vx0^4*sin(Vx0*t);
     dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
+end
+if (RR == 3)
+    dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+    
+    z_d = a1*sin(w1*t) + a2*sin(w2*t);
+    dz_d = w1*a1*cos(w1*t) + w2*a2*cos(w2*t);
+    ddz_d = -w1^2*a1*sin(w1*t) - w2^2*a2*sin(w2*t);
 end
 %-------------------------------------------------------------------------%
 
@@ -72,11 +81,11 @@ Iz = 1.0*Izz;
 
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
-e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
-%de_z_est = -Ke*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
+%de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+de_z_est = -sqrt(Ke)*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
 
 % U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
 U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
@@ -89,10 +98,12 @@ end
 
 if (YY == 2)
 % --- PID controller -----------------------------------------------------%
-e_z = Z - y(18); % reference smoothing filter 1st order
+%e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+%de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+vv = -Ke*sqrt(abs(y(17)-Z))*sign(y(17)-Z) + y(26);
+de_z_est = vv - dz_d;
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
 U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
@@ -333,7 +344,7 @@ dy(14) = T_1;
 dy(15) = T_2;
 dy(16) = T_3;
 
-dy(17) = de_z_est; % first order differentiator (velocity estimate)
+dy(17) = vv; % first order differentiator (velocity estimate)
 dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
 dy(19) = -Ksf*(y(19) - y(18)); % 2nd order smoothing filter
 
@@ -350,7 +361,7 @@ end
 if (YY == 5)
     dy(25) = dIn;
 end
-dy(26) = -Ke*sign(y(17)-e_z);
+dy(26) = -Ke*sign(y(17)-Z);
 
 
 

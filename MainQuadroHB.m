@@ -1,14 +1,14 @@
 % Quadrotor stabilization algorithms comparison
 clear all; close all; clc;
 
-global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0
+global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke Ksf
 
-T = 40; % Simulation time
+T = 4; % Simulation time
 N = 26; % Number of differential equations
 
 grav = 9.81;
-Ke = 100; % velocity estimator gain; 100 for lin estimate, 
+Ke = 10; % velocity estimator gain; 100 for lin estimate, 
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
@@ -19,8 +19,8 @@ QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
-YY = 1; % linear PD control with gravity compensation
-% YY = 2; % PID control with gravity compensation
+% YY = 1; % linear PD control with gravity compensation
+YY = 2; % PID control with gravity compensation
 % YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
 % YY = 5; % Super-twisting
@@ -33,8 +33,8 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 % === CHOOSE REFERENCE ===================================================%
 % RR = 1; % Z step reference, X & Y = 0
-RR = 2; % Spiral trajectory
-
+% RR = 2; % Spiral trajectory
+RR = 3;
 %=========================================================================%
 
 % === CHOOSE DISTURBANCE =================================================%
@@ -86,6 +86,10 @@ if (RR == 1)
 end
 if (RR == 2)
     Vx0=0.5; Ay0=1;
+end
+if (RR == 3)
+    a1 = 1; a2 = 0.5;   % amplitude referentnog signala
+    w1 = 2; w2 = 5;     % frekvencije referentnog signala
 end
 %-------------------------------------------------------------------------%
 
@@ -149,7 +153,12 @@ if (RR == 2)
     x_d = -Ay0*0 + Ay0*cos(Vx0*t);
     y_d = Ay0*sin(Vx0*t);
     z_d = Vx0*t;
-end     
+end
+if (RR == 3)
+    x_d = zeros(size(t));
+    y_d = zeros(size(t));
+    z_d = a1*sin(w1*t) + a2*sin(w2*t);
+end 
 
 if DD == 0
 d_0 = 0*t;
@@ -177,9 +186,9 @@ subplot(2,3,6), plot(t,y(:,6),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize
 
 % Errors
 figure(2)
-subplot(3,1,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(3,1,2), semilogy(t,abs(y(:,2)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(3,1,3), semilogy(t,abs(y(:,3)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), semilogy(t,abs(y(:,2)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), semilogy(t,abs(y(:,3)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Thrust force and torques
 F=diff(y(:,13))./diff(t);
@@ -199,9 +208,9 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-subplot(2,1,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('e_{z, est}', 'e_z');
-subplot(2,1,2), semilogy(td, abs(dZ - de_z_est), '-b', 'linewidth',4), ylabel('|e_z - e_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+subplot(2,3,4), semilogy(td, abs(dZ - de_z_est), '-b', 'linewidth',4), ylabel('|e_z - e_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 %-------------------------------------------------------------------------%
 end
 
@@ -217,16 +226,16 @@ subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSiz
 
 % Errors
 figure(2)
-subplot(3,1,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(3,1,2), semilogy(t,abs(y(:,3)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(3,1,3), semilogy(t,abs(y(:,5)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), semilogy(t,abs(y(:,3)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), semilogy(t,abs(y(:,5)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Thrust force and torques
 F=diff(y(:,13))./diff(t);
 T1=diff(y(:,14))./diff(t);
 T2=diff(y(:,15))./diff(t);
 T3=diff(y(:,16))./diff(t);
-de_z_est = diff(y(:,17))./diff(t);
+de_z_est = diff(y(:,17))./diff(t); %ovo je sad vv - estimacija brzine od Z, ne greske
 dZ = diff(y(:,5))./diff(t);
 td=t(1:(length(t)-1));
 
@@ -238,9 +247,9 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-subplot(2,1,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('e_{z, est}', 'e_z');
-subplot(2,1,2), semilogy(td, abs(dZ - de_z_est), '-b', 'linewidth',4), ylabel('|e_z - e_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+subplot(2,3,4), semilogy(td, abs(dZ - de_z_est), '-b', 'linewidth',4), ylabel('|e_z - e_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 %--------------------------------------------------------------%
 end
 
