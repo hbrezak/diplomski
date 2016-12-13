@@ -5,7 +5,7 @@ global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke Ksf
 
 T = 4; % Simulation time
-N = 26; % Number of differential equations
+N = 27; % Number of differential equations
 
 grav = 9.81;
 Ke = 10; % velocity estimator gain; 100 for lin estimate, 
@@ -147,17 +147,20 @@ if (RR == 1)
     x_d = zeros(size(t));
     y_d = zeros(size(t));
     z_d = zeros(size(t));
-    z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))];    
+    z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))];
+    dz_d = zeros(size(t));
 end
 if (RR == 2)
     x_d = -Ay0*0 + Ay0*cos(Vx0*t);
     y_d = Ay0*sin(Vx0*t);
     z_d = Vx0*t;
+    dz_d = Vx0*ones(size(t));
 end
 if (RR == 3)
     x_d = zeros(size(t));
     y_d = zeros(size(t));
     z_d = a1*sin(w1*t) + a2*sin(w2*t);
+    dz_d = w1*a1*cos(w1*t) + w2*a2*cos(w2*t);
 end 
 
 if DD == 0
@@ -247,7 +250,8 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-subplot(2,3,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%subplot(2,3,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), plot(td, de_z_est,'b-', dZ - dz_d, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('e_{z, est}', 'e_z');
 subplot(2,3,4), semilogy(td, abs(dZ - de_z_est), '-b', 'linewidth',4), ylabel('|e_z - e_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 %--------------------------------------------------------------%

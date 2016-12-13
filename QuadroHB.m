@@ -98,11 +98,14 @@ end
 
 if (YY == 2)
 % --- PID controller -----------------------------------------------------%
-%e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
 %de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+
 vv = -Ke*sqrt(abs(y(17)-Z))*sign(y(17)-Z) + y(26);
+
+de_z_est = -sqrt(Ke)*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
 de_z_est = vv - dz_d;
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
@@ -343,6 +346,7 @@ dy(13) = F;
 dy(14) = T_1;
 dy(15) = T_2;
 dy(16) = T_3;
+dy(27) = de_z;
 
 dy(17) = vv; % first order differentiator (velocity estimate)
 dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
