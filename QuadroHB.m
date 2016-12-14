@@ -101,8 +101,8 @@ if (YY == 2)
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
-%de_z_est = -Ke*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
+%de_z_est = -Ke*(y(17) - e_z); % 1st order filter error derivative estimation
+de_z_est = -Ke*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
 U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
@@ -166,27 +166,26 @@ end
 
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
-e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+%de_z_est = -Ke*(y(17) - e_z); % 1st order filter error derivative estimation
+de_z_est = -Ke*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-p = 1; U = 20; % 20, 50, 80, 100
+p = 1; U = 50; % 20, 50, 80, 100
 % s = de_z + p*e_z;
 % s = de_z_est + p*e_z;
 s = de_z_est + (k_P/k_D)*e_z;
 
-Pn = -sqrt(U) * sqrt(abs(s)) * sign(s);
-dIn = -1.1 * U * sign(s);
-In = y(25);
+ST = -U*sqrt(abs(s))*sign(s) + y(25);
 
-% U_0 = Pn + In; % add pure super-twisting
-% U_0 = m*(Pn + In);
-% U_0 = m*(grav + Pn + In);
-% U_0 = m*(grav - U*s + Pn + In);
+% U_0 = ST; % add pure super-twisting
+% U_0 = m*ST;
+% U_0 = m*(grav + ST);
+%U_0 = m*(grav - U*s + ST);
 
 %s = de_z_est + (k_P/k_D)*e_z;
-U_0 = m*(grav - k_D*s + Pn + In);
+U_0 = m*(grav - k_D*s + ST);
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -359,7 +358,7 @@ if (YY == 4) || (YY == 5)
 end
 
 if (YY == 5)
-    dy(25) = dIn;
+    dy(25) = -U*sign(s);
 end
 dy(26) = -Ke*sign(y(17)-e_z);
 

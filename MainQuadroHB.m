@@ -20,10 +20,10 @@ QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
-YY = 2; % PID control with gravity compensation
+% YY = 2; % PID control with gravity compensation
 % YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
-% YY = 5; % Super-twisting
+YY = 5; % Super-twisting
 %=========================================================================%
 
 % === CHOOSE SOLVER ======================================================%
