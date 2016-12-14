@@ -8,14 +8,14 @@ T = 4; % Simulation time
 N = 27; % Number of differential equations
 
 grav = 9.81;
-Ke = 10; % velocity estimator gain; 100 for lin estimate, 
+Ke = 20; % velocity estimator gain; 100 for lin estimate, 
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
@@ -198,8 +198,10 @@ F=diff(y(:,13))./diff(t);
 T1=diff(y(:,14))./diff(t);
 T2=diff(y(:,15))./diff(t);
 T3=diff(y(:,16))./diff(t);
+
 de_z_est = diff(y(:,17))./diff(t);
 dZ = diff(y(:,3))./diff(t);
+de_z = diff(y(:,27))./diff(t);
 td=t(1:(length(t)-1));
 
 figure(3)
@@ -211,9 +213,9 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-subplot(2,3,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('e_{z, est}', 'e_z');
-subplot(2,3,4), semilogy(td, abs(dZ - de_z_est), '-b', 'linewidth',4), ylabel('|e_z - e_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+subplot(2,3,1), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('de_z, de_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('de_{z, est}', 'de_z');
+subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 %-------------------------------------------------------------------------%
 end
 
@@ -238,8 +240,10 @@ F=diff(y(:,13))./diff(t);
 T1=diff(y(:,14))./diff(t);
 T2=diff(y(:,15))./diff(t);
 T3=diff(y(:,16))./diff(t);
-de_z_est = diff(y(:,17))./diff(t); %ovo je sad vv - estimacija brzine od Z, ne greske
-dZ = diff(y(:,5))./diff(t);
+
+de_z_est = diff(y(:,17))./diff(t);
+dZ = y(:,6); % z velocity
+de_z = diff(y(:,27))./diff(t);
 td=t(1:(length(t)-1));
 
 figure(3)
@@ -250,10 +254,10 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-%subplot(2,3,1), plot(td, de_z_est,'b-', td, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,1), plot(td, de_z_est,'b-', dZ - dz_d, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('e_{z, est}', 'e_z');
-subplot(2,3,4), semilogy(td, abs(dZ - de_z_est), '-b', 'linewidth',4), ylabel('|e_z - e_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+%subplot(2,3,1), plot(td, de_z_est,'b-', t, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('de_{z, est}', 'de_z');
+subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 %--------------------------------------------------------------%
 end
 

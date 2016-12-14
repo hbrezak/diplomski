@@ -101,12 +101,8 @@ if (YY == 2)
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-%de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
-
-vv = -Ke*sqrt(abs(y(17)-Z))*sign(y(17)-Z) + y(26);
-
-de_z_est = -sqrt(Ke)*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
-de_z_est = vv - dz_d;
+de_z_est = -Ke*(y(17) - e_z); % error derivative estimation
+%de_z_est = -Ke*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
 U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
@@ -348,7 +344,7 @@ dy(15) = T_2;
 dy(16) = T_3;
 dy(27) = de_z;
 
-dy(17) = vv; % first order differentiator (velocity estimate)
+dy(17) = de_z_est; % first order differentiator (velocity estimate)
 dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
 dy(19) = -Ksf*(y(19) - y(18)); % 2nd order smoothing filter
 
@@ -365,7 +361,8 @@ end
 if (YY == 5)
     dy(25) = dIn;
 end
-dy(26) = -Ke*sign(y(17)-Z);
+dy(26) = -Ke*sign(y(17)-e_z);
+
 
 
 
