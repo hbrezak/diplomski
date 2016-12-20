@@ -5,11 +5,11 @@ global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u
 
 T = 4; % Simulation time
-N = 27; % Number of differential equations
+N = 28; % Number of differential equations
 
 grav = 9.81;
 Ke_lin = 100; % linear velocity estimator gain 
-Ke_st = 20; % super-twisting velocity estimator gain
+Ke_st = 40; % super-twisting velocity estimator gain
 Ksf = 1.5; % smoothing filter 
 rho = 20;
 u = 1;
@@ -204,7 +204,7 @@ T3=diff(y(:,16))./diff(t);
 
 de_z_est = diff(y(:,17))./diff(t);
 dZ = diff(y(:,3))./diff(t);
-de_z = diff(y(:,27))./diff(t);
+de_z = diff(y(:,28))./diff(t);
 td=t(1:(length(t)-1));
 
 figure(3)
@@ -246,7 +246,7 @@ T3=diff(y(:,16))./diff(t);
 
 de_z_est = diff(y(:,17))./diff(t);
 dZ = y(:,6); % z velocity
-de_z = diff(y(:,27))./diff(t);
+de_z = diff(y(:,28))./diff(t);
 td=t(1:(length(t)-1));
 
 figure(3)

@@ -171,13 +171,13 @@ if (YY == 5)
 % de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-p = 1; U = 80; % 20, 50, 80, 100
-s = de_z + p*e_z;
-% s = de_z_est + p*e_z;
+p = 1; U = 20; % 20, 50, 80, 100
+% s = de_z + p*e_z;
+s = de_z_est + p*e_z;
 % s = de_z_est + (k_P/k_D)*e_z;
 
-% ST = -U*sqrt(abs(s))*sign(s) + y(25);
-ST = -sqrt(U)*sqrt(abs(s))*sign(s) + y(25); % sa U=100 i vise daje ok rez ali Fz je kratko negativan
+ST = -U*sqrt(abs(s))*sign(s) + y(25);
+% ST = -sqrt(U)*sqrt(abs(s))*sign(s) + y(25); % sa U=100 i vise daje ok rez ali Fz je kratko negativan
 
 
 U_0 = ST; % add pure super-twisting
@@ -342,7 +342,7 @@ dy(13) = F;
 dy(14) = T_1;
 dy(15) = T_2;
 dy(16) = T_3;
-dy(27) = de_z;
+dy(28) = de_z;
 
 dy(17) = de_z_est; % first order differentiator (velocity estimate)
 dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
@@ -355,11 +355,12 @@ dy(22) = Theta;
 dy(23) = Psi;
 
 if (YY == 4) || (YY == 5)
-    dy(24) = s;    
+    dy(24) = s;    % for plot
 end
 
 if (YY == 5)
-    dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
+    dy(25) = -U*sign(s); % part of super-twisting algorithm
+    % dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
 end
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
 
