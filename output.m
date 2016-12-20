@@ -10,7 +10,7 @@ switch YY
     case 4
         controller = 'Sliding mode 1st order (sign)';
     case 5
-        controller = 'Super-twisting';
+        controller = 'Super-twisting (2nd order sliding mode) algorithm';
     otherwise
         controller = 'Invalid controller selection';
 end
@@ -29,6 +29,8 @@ switch RR
         reference = 'Z step reference, X & Y = 0';
     case 2
         reference = 'Spiral trajectory';
+    case 3
+        reference = 'Sinusoidal function';
     otherwise
         reference = 'Invalid reference selection';
 end

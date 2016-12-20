@@ -2,20 +2,21 @@
 clear all; close all; clc;
 
 global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke Ksf
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf
 
 T = 4; % Simulation time
 N = 27; % Number of differential equations
 
 grav = 9.81;
-Ke = 20; % velocity estimator gain; 100 for lin estimate, 
+Ke_lin = 100; % linear velocity estimator gain 
+Ke_st = 20; % super-twisting velocity estimator gain
 Ksf = 1.5; % smoothing filter gain
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-% QQ = 4; % MODEL 4 - linear quadrotor model
+QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
@@ -23,7 +24,7 @@ QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % YY = 2; % PID control with gravity compensation
 % YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
-YY = 5; % Super-twisting
+YY = 5; % Super-twisting (2nd order sliding mode) algorithm
 %=========================================================================%
 
 % === CHOOSE SOLVER ======================================================%
@@ -34,7 +35,7 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 % === CHOOSE REFERENCE ===================================================%
 % RR = 1; % Z step reference, X & Y = 0
 % RR = 2; % Spiral trajectory
-RR = 3;
+RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
 % === CHOOSE DISTURBANCE =================================================%
