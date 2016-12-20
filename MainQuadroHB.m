@@ -2,7 +2,7 @@
 clear all; close all; clc;
 
 global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u
 
 T = 4; % Simulation time
 N = 27; % Number of differential equations
@@ -10,7 +10,9 @@ N = 27; % Number of differential equations
 grav = 9.81;
 Ke_lin = 100; % linear velocity estimator gain 
 Ke_st = 20; % super-twisting velocity estimator gain
-Ksf = 1.5; % smoothing filter gain
+Ksf = 1.5; % smoothing filter 
+rho = 20;
+u = 1;
 
 % === CHOOSE MODEL =======================================================%
 % QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
@@ -264,10 +266,12 @@ end
 
 % Filtered reference
 figure(5)
-subplot(2,1,1), plot(t, y(:, 18), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(3,1,1), plot(t, y(:, 18), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('1st order smoothing filter', 'Z position reference');
-subplot(2,1,2), plot(t, y(:, 19), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(3,1,2), plot(t, y(:, 19), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('2nd order smoothing filter', 'Z position reference');
+subplot(3,1,3), plot(t, y(:, 27), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Saturated nonlinear smoothing filter', 'Z position reference');
 
 % Disturbance
 figure(6)

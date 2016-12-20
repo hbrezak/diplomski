@@ -1,8 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf
-
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u
 dy = zeros(N, 1);
 
 if (QQ == 1)
@@ -363,6 +362,8 @@ if (YY == 5)
     dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
 end
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
+
+dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated smoothing filter
 
 
 
