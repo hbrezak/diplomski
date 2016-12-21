@@ -100,7 +100,7 @@ if (YY == 2)
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-%de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
+% de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
@@ -167,26 +167,27 @@ if (YY == 5)
 % --- Super-twisting --------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(27); %nonlinear saturated smoothing filter
 
+% de_z_est = de_z; % use measured velocity
 % de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-p = 1; U = 20; % 20, 50, 80, 100
-% s = de_z + p*e_z;
-s = de_z_est + p*e_z;
-% s = de_z_est + (k_P/k_D)*e_z;
+p = 1; U = 100; % 20, 50, 80, 100
+
+% s = de_z_est + p*e_z;
+s = de_z_est + (k_P/k_D)*e_z;
 
 ST = -U*sqrt(abs(s))*sign(s) + y(25);
 % ST = -sqrt(U)*sqrt(abs(s))*sign(s) + y(25); % sa U=100 i vise daje ok rez ali Fz je kratko negativan
 
 
-U_0 = ST; % add pure super-twisting
+% U_0 = ST; % add pure super-twisting
 % U_0 = m*ST;
 % U_0 = m*(grav + ST);
 % U_0 = m*(grav - U*s + ST);
 
-% s = de_z_est + (k_P/k_D)*e_z;
-% U_0 = m*(grav - k_D*s + ST);
+U_0 = m*(grav - k_D*s) + ST;
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -210,21 +211,21 @@ end
 
 if (DD == 1)
     d_0 = 1*d0*exp(-Sg*(t-T/2)^2);
-    d_1 = 1*d0*exp(-Sg*(t-T/2)^2);
+    d_1 = 0*d0*exp(-Sg*(t-T/2)^2);
     d_2 = 0*d0*exp(-Sg*(t-T/2)^2);
     d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
 end
 
 if (DD == 2)
     d_0 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
-    d_1 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
-    d_2 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_1 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_2 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
     d_3 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
 end
 
 if (DD == 3)
     d_0 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
-    d_1 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_1 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
     d_2 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
     d_3 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
 end
@@ -354,21 +355,16 @@ dy(21) = Phi;
 dy(22) = Theta;
 dy(23) = Psi;
 
-if (YY == 4) || (YY == 5)
-    dy(24) = s;    % for plot
-end
+dy(24) = s;    % for plot
 
-if (YY == 5)
-    dy(25) = -U*sign(s); % part of super-twisting algorithm
-    % dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
-end
+
+
+dy(25) = -U*sign(s); % part of super-twisting algorithm
+% dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
+
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
 
 dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated smoothing filter
-
-
-
-
 
 end % function QuadroHB
 
