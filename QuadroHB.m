@@ -1,7 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg
 dy = zeros(N, 1);
 
 if (QQ == 1)
@@ -167,7 +167,7 @@ if (YY == 5)
 % --- Super-twisting --------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
-% e_z = Z - y(27); %nonlinear saturated smoothing filter
+% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 % de_z_est = de_z; % use measured velocity
 % de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
@@ -175,8 +175,8 @@ de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting 
 
 p = 1; U = 100; % 20, 50, 80, 100
 
-% s = de_z_est + p*e_z;
-s = de_z_est + (k_P/k_D)*e_z;
+s = de_z_est + p*e_z;
+% s = de_z_est + (k_P/k_D)*e_z;
 
 ST = -U*sqrt(abs(s))*sign(s) + y(25);
 % ST = -sqrt(U)*sqrt(abs(s))*sign(s) + y(25); % sa U=100 i vise daje ok rez ali Fz je kratko negativan
@@ -185,9 +185,8 @@ ST = -U*sqrt(abs(s))*sign(s) + y(25);
 % U_0 = ST; % add pure super-twisting
 % U_0 = m*ST;
 % U_0 = m*(grav + ST);
-% U_0 = m*(grav - U*s + ST);
-
-U_0 = m*(grav - k_D*s) + ST;
+U_0 = m*(grav - U*s + ST);
+% U_0 = m*(grav - k_D*s) + ST;
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -232,7 +231,7 @@ end
 %-------------------------------------------------------------------------%   
 
 % --- Final control signals:
-F = U_0 + d_0;
+F = kg*tanh((U_0 + d_0)/kg);
 T_1 = U_1 + d_1;
 T_2 = U_2 + d_2;
 T_3 = U_3 + d_3;
@@ -343,7 +342,7 @@ dy(13) = F;
 dy(14) = T_1;
 dy(15) = T_2;
 dy(16) = T_3;
-dy(28) = de_z;
+
 
 dy(17) = de_z_est; % first order differentiator (velocity estimate)
 dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
@@ -365,6 +364,8 @@ dy(25) = -U*sign(s); % part of super-twisting algorithm
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
 
 dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated smoothing filter
+
+dy(28) = de_z;
 
 end % function QuadroHB
 

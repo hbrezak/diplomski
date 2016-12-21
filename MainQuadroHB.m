@@ -2,17 +2,18 @@
 clear all; close all; clc;
 
 global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg
 
 T = 40; % Simulation time
 N = 28; % Number of differential equations
 
 grav = 9.81;
 Ke_lin = 20; % linear velocity estimator gain 
-Ke_st = 20; % super-twisting velocity estimator gain
+Ke_st = 10; % super-twisting velocity estimator gain
 Ksf = 1.5; % smoothing filter 
 rho = 20;
 u = 1;
+kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
 % QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
