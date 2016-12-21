@@ -128,7 +128,7 @@ output(T, QQ, YY, WW, RR, DD);
 
 if (WW == 1)
 % --- Fixed-step Runge-Kutta 4th order -----------------------------------%
-tspan = [0 T]; Nstep = 10000; DeltaT = T/Nstep;
+tspan = [0 T]; Nstep = 20000; DeltaT = T/Nstep;
 [t, y] = rk4(@QuadroHB, tspan, xx0, DeltaT);
 end
 %-------------------------------------------------------------------------%
