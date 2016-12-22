@@ -54,8 +54,8 @@ if (RR == 2)
     dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
 end
 if (RR == 3)
-    dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-    dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
     
     z_d = a1*sin(w1*t) + a2*sin(w2*t);
     dz_d = w1*a1*cos(w1*t) + w2*a2*cos(w2*t);
@@ -83,8 +83,8 @@ if (YY == 1)
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-%de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-de_z_est = -sqrt(Ke_st)*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
+de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+% de_z_est = -sqrt(Ke_st)*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
 
 % U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
 U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
@@ -100,8 +100,8 @@ if (YY == 2)
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
-% de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
-de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
+de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
+% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
 U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
@@ -114,7 +114,7 @@ end
 
 if (YY == 3)
 % --- Trajectory tracking control law ------------------------------------%
-e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
@@ -137,7 +137,7 @@ end
 if (YY == 4)
 % --- Sliding mode 1st order (sign) --------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
-e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 
@@ -165,7 +165,7 @@ end
 
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
+e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 % e_z = Z - y(27); % nonlinear saturated smoothing filter
 
@@ -354,12 +354,15 @@ dy(21) = Phi;
 dy(22) = Theta;
 dy(23) = Psi;
 
-dy(24) = s;    % for plot
+if (YY == 4)||(YY == 5)
+    dy(24) = s;    % for plot
+    dy(25) = -U*sign(s); % part of super-twisting algorithm
+    % dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
+end
 
 
 
-dy(25) = -U*sign(s); % part of super-twisting algorithm
-% dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
+
 
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
 
