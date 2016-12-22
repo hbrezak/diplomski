@@ -91,12 +91,14 @@ if (YY == 1)
 % --- PD controller ------------------------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-% de_z_est = -sqrt(Ke_st)*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
+% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
-U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
+% U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
+U_0 = max((m*(grav - k_D*de_z_est - k_P*e_z)), 0); % limit to positive numbers only
 
 U_1 = -k_D*dPhi - k_P*Phi;
 U_2 = -k_D*dTheta - k_P*Theta;
@@ -108,12 +110,14 @@ if (YY == 2)
 % --- PID controller -----------------------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
-U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
+% U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
+U_0 = max((m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20)), 0); % limit to positive numbers only
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -125,11 +129,14 @@ if (YY == 3)
 % --- Trajectory tracking control law ------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
-U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
+% U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
+U_0 = max(m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20), 0); % limit to positive numbers only
 
 dde_x = (grav/m)*Theta - ddx_d;
 d3e_x = (grav/m)*dTheta - d3x_d;
@@ -147,8 +154,10 @@ if (YY == 4)
 % --- Sliding mode 1st order (sign) --------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 p = 1; eps = 0.01;
 U = 20; % 4 values tested: 20, 50, 100, 150
@@ -162,9 +171,12 @@ s = de_z_est + p*e_z;
 
 % U_0 = m*(grav - U*s - U*( s / (abs(s) + eps) ) );
 
-s = de_z_est + (k_P/k_D)*e_z;
-U_0 = m*(grav - k_D*s - k_D*sign(s));
+U_0 = max(m*(grav - U*s - U*sign(s)), 0); % limit to positive numbers only
+
+% s = de_z_est + (k_P/k_D)*e_z;
+% U_0 = m*(grav - k_D*s - k_D*sign(s));
 % U_0 = m*(grav - k_D*s - k_D*( s / (abs(s) + eps) ) );
+% U_0 = max((m*(grav - k_D*s - k_D*( s / (abs(s) + eps) ) )), 0); % limit to positive numbers only
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -226,8 +238,8 @@ if (DD == 0)
 end
 
 if (DD == 1)
-    d_0 = 1*d0*exp(-Sg*(t-T/2)^2);
-    d_1 = 0*d0*exp(-Sg*(t-T/2)^2);
+    d_0 = 0*d0*exp(-Sg*(t-T/2)^2);
+    d_1 = 1*d0*exp(-Sg*(t-T/2)^2);
     d_2 = 0*d0*exp(-Sg*(t-T/2)^2);
     d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
 end
@@ -249,7 +261,9 @@ end
 
 % --- Final control signals:
 %F = kg*tanh((U_0 + d_0)/kg);
+
 F = FF(1) + d_0;
+% fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
 T_1 = FF(2) + d_1;
 T_2 = FF(3) + d_2;
 T_3 = FF(4) + d_3;

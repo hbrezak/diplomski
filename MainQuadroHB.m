@@ -17,10 +17,10 @@ u = 1; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 
@@ -48,14 +48,14 @@ RR = 1; % Z step reference, X & Y = 0
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-DD = 0; % without disturbance
+% DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
-% DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
+DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 
 % --- Shape:
-% d0=1; Sg=5; % short duration, small amplitude
-d0=4; Sg=0.1; % long duration, large amplitude
+d0=1; Sg=5; % short duration, small amplitude
+% d0=4; Sg=0.1; % long duration, large amplitude
 %=========================================================================%
 
 
@@ -189,16 +189,16 @@ if (RR == 3)
     dz_d = w1*a1*cos(w1*t) + w2*a2*cos(w2*t);
 end 
 
-if DD == 0
+if (DD == 0)
 d_0 = 0*t;
 end
-if DD == 1
+if (DD == 1)
 d_0 = d0*exp(-Sg*(t-T/2).^2);
 end
-if DD == 2
+if (DD == 2)
 d_0 = d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2);
 end
-if DD == 3
+if (DD == 3)
 d_0 = d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2);
 end
 %-------------------------------------------------------------------------%
@@ -285,7 +285,6 @@ subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',
 
 % Estimated velocity
 figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijednosti
-%subplot(2,3,1), plot(td, de_z_est,'b-', t, dZ, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,1), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('de_{z, est}', 'de_z');
 subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
