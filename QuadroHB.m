@@ -1,7 +1,9 @@
 function dy = QuadroHB(t,y)
 
-global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg
+global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
+global E_B inv_E_B AngVel_limit
+
 dy = zeros(N, 1);
 
 if (QQ == 1)
@@ -48,6 +50,7 @@ if (RR == 1)
             z_d = 1;
         end
     end
+    z_d = z_d * stepAmp;
     dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;     
 end
 if (RR == 2)
@@ -193,8 +196,11 @@ ST = -U*sqrt(abs(s))*sign(s) + y(25);
 % U_0 = m*(grav + ST);
 % U_0 = m*(grav - U*s + ST);
 % U_0 = m*(grav - k_D*s) + ST;
-kkgg=4;
-U_0 = m*grav + kkgg*tanh( -(m/kkgg)*U*s + (1/kkgg)*ST);
+
+%k_m = 4;
+%U_0 = m*grav + k_m*tanh( -(m/k_m)*U*s + (1/k_m)*ST);
+
+U_0 = max((m*grav -m*U*s + ST), 0); % limit to positive numbers only
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -202,15 +208,17 @@ U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
 
-% #TODO: saturacija motora ---------------
-% probably good with l = 0.1; d = 0.0000001; b=0.0000008;
-l = 0.125; b = 1.58*10^-6; d = 2.67*10^-8;
-E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
-Omega_squared = (inv(E_B)*[U_0 U_1 U_2 U_3]');
-kkg = 2102^2; % max motor ang. velocity (rad/s), original 2400kV*11.1V reduced by more than 20% for prop
-Omega_squared = kkg.*tanh(Omega_squared./kkg);
-FF = E_B * Omega_squared;
-% ----------------------------------------
+% --- Actuator saturation ------------------------------------------------%
+Omega = sqrt(inv_E_B*[U_0 U_1 U_2 U_3]');
+
+if (max(Omega) > AngVel_limit)
+    scale_factor = AngVel_limit/max(Omega);
+    Omega = Omega .* scale_factor;
+end
+%Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
+
+FF = E_B * Omega.^2;
+%-------------------------------------------------------------------------%
 
 % --- Disturbances (wind gust) -------------------------------------------%
 if (DD == 0)
@@ -370,15 +378,16 @@ if (YY == 4)||(YY == 5)
     % dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
 end
 
-
-
-
-
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
 
 dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated smoothing filter
 
 dy(28) = de_z;
+
+dy(29) = Omega(1);
+dy(30) = Omega(2);
+dy(31) = Omega(3);
+dy(32) = Omega(4);
 
 end % function QuadroHB
 

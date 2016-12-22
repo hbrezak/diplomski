@@ -1,11 +1,12 @@
 % Quadrotor stabilization algorithms comparison
 clear all; close all; clc;
 
-global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg
+global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
+global E_B inv_E_B AngVel_limit
 
 T = 20; % Simulation time
-N = 28; % Number of differential equations
+N = 32; % Number of differential equations
 
 grav = 9.81;
 Ke_lin = 20; % linear velocity estimator gain 
@@ -16,11 +17,12 @@ u = 1; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-% QQ = 4; % MODEL 4 - linear quadrotor model
+QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
+
 
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
@@ -30,10 +32,12 @@ QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 YY = 5; % Super-twisting (2nd order sliding mode) algorithm
 %=========================================================================%
 
+
 % === CHOOSE SOLVER ======================================================%
 WW = 1; % Fixed-step Runge-Kutta 4th order
 % WW = 2; % ODE Runge-Kutta (variable step)
 %=========================================================================%
+
 
 % === CHOOSE REFERENCE ===================================================%
 RR = 1; % Z step reference, X & Y = 0
@@ -41,8 +45,9 @@ RR = 1; % Z step reference, X & Y = 0
 % RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
+
 % === CHOOSE DISTURBANCE =================================================%
-% --- Occurence:
+% --- Type:
 DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
@@ -53,6 +58,7 @@ DD = 0; % without disturbance
 d0=4; Sg=0.1; % long duration, large amplitude
 %=========================================================================%
 
+
 % === CHOOSE INITIAL CONDITIONS ==========================================%
 xx0 = zeros(1, N);
 if (QQ == 1)
@@ -62,6 +68,7 @@ if (QQ == 2)||(QQ == 3)||(QQ == 4)
    xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
 end
 %=========================================================================%
+
 
 % === CHOOSE QUADROTOR PARAMETERS ========================================%
 % "Image Based Visual Servoing for an Autonomous Quadrotor with Adaptive Backstepping Control":
@@ -81,11 +88,23 @@ mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309;
 
 Ixy = 0; Iyz = 0; Ixz = 0;
 I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
+l = 0.125; % 250 class quadrotor frame
+
+% === MOTOR PARAMETERS ===================================================%
+% Calculated from experimental values for EMAX RS2205@12V w/ HQ5045 BN prop
+% Max. performance: I = 20.7A, F_T = 0.712*9.81, P = 248.4W, RPM = 20080;
+ b = 1.58*10^-6; % thrust factor
+ d = 2.67*10^-8; % drag factor
+ AngVel_limit = 2000; % [rad/s]; calculated maximum is 2102.8 rad/s
+
+ E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
+ inv_E_B = inv(E_B);
 %=========================================================================%
 
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
+    stepAmp = 1; 
     x_d = 0; y_d = 0; z_d = 1;
 end
 if (RR == 2)
@@ -154,7 +173,7 @@ if (RR == 1)
     one_sec = (size(z_d, 1)-1)/T; % number of samples in one second
     
     % what ever T is, set step to start at 1 sec. and lower it to 0 at last quarter    
-    z_d = [zeros(size(t(1:one_sec))); ones(size(t(1:round(3*end/4)-one_sec))); zeros(size(t(1:round(1*end/4))))];
+    z_d = stepAmp*[zeros(size(t(1:one_sec))); ones(size(t(1:round(3*end/4)-one_sec))); zeros(size(t(1:round(1*end/4))))];
     dz_d = zeros(size(t));
 end
 if (RR == 2)
@@ -186,6 +205,7 @@ end
 
 if (QQ == 1)
 % --- MODEL 1 ------------------------------------------------------------%
+% Trajectories
 figure(1)
 subplot(2,3,1), plot(t,y(:,1),'b', t, x_d,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,2), plot(t,y(:,2),'b', t, y_d,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
@@ -211,6 +231,7 @@ dZ = diff(y(:,3))./diff(t);
 de_z = diff(y(:,28))./diff(t);
 td=t(1:(length(t)-1));
 
+% Force and torques
 figure(3)
 subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 9 15])
 subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -10 5])
@@ -228,6 +249,7 @@ end
 
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
 % --- MODEL 2 - MODEL 3 - MODEL 4 ----------------------------------------%
+% Trajectories
 figure(1)
 subplot(2,3,1), plot(t,y(:,1),'b', t, x_d,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,2), plot(t,y(:,3),'b', t, y_d,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
@@ -251,8 +273,10 @@ T3=diff(y(:,16))./diff(t);
 de_z_est = diff(y(:,17))./diff(t);
 dZ = y(:,6); % z velocity
 de_z = diff(y(:,28))./diff(t);
+
 td=t(1:(length(t)-1));
 
+% Force and torques
 figure(3)
 subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 9 15])
 subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -10 5])
@@ -266,7 +290,14 @@ subplot(2,3,1), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('
 legend('de_{z, est}', 'de_z');
 subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 %--------------------------------------------------------------%
-end
+end % MODEL SPECIFIC
+
+% --- GENERAL PLOTS ------------------------------------------------------%
+
+Omega1 = diff(y(:,29))./diff(t);
+Omega2 = diff(y(:,30))./diff(t);
+Omega3 = diff(y(:,31))./diff(t);
+Omega4 = diff(y(:,32))./diff(t);
 
 % Filtered reference
 figure(5)
@@ -281,11 +312,23 @@ legend('Saturated nonlinear smoothing filter', 'Z position reference');
 figure(6)
 plot(t, d_0, 'b-', 'Linewidth', 4), ylabel('Wind gust', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
 
+% Sliding variable s
 if (YY == 4) || (YY == 5)
     s = diff(y(:,24))./diff(t);
-    figure(20)
+    figure(7)
     plot(td, s, 'b-', 'Linewidth', 4), ylabel('error', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), 
     legend('Sliding variable s'), grid 'on', axis([0 20 -0.8 0.8]);
 end
+
+% Actuator angular velocity
+figure(8)
+subplot(2,2,1), plot(td, Omega1, 'b-', 'LineWidth', 4), ylabel('Angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Actuator 1');
+subplot(2,2,2), plot(td, Omega2, 'b-', 'LineWidth', 4), ylabel('Angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Actuator 2');
+subplot(2,2,3), plot(td, Omega3, 'b-', 'LineWidth', 4), ylabel('Angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Actuator 3');
+subplot(2,2,4), plot(td, Omega4, 'b-', 'LineWidth', 4), ylabel('Angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Actuator 4');
 
 %=========================================================================%
