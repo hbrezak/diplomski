@@ -165,7 +165,7 @@ end
 
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
-e_z = Z - y(18); % reference smoothing filter 1st order
+% e_z = Z - y(18); % reference smoothing filter 1st order
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 % e_z = Z - y(27); % nonlinear saturated smoothing filter
 
@@ -196,11 +196,12 @@ end
 
 % #TODO: saturacija motora ---------------
 % probably good with l = 0.1; d = 0.0000001; b=0.0000008;
-% E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
-% Omega = (inv(E_B)*[U_0 U_1 U_2 U_3]');
-% kg = 1885^2; % max motor ang. velocity (rad/s), original 2400kV*11.1V reduced by more than 20% for prop
-% Omega = kg.*tanh(Omega./kg);
-% FF = E_B * Omega;
+l = 0.125; b = 1.58*10^-6; d = 2.67*10^-8;
+E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
+Omega_squared = (inv(E_B)*[U_0 U_1 U_2 U_3]');
+kkg = 2102^2; % max motor ang. velocity (rad/s), original 2400kV*11.1V reduced by more than 20% for prop
+Omega_squared = kkg.*tanh(Omega_squared./kkg);
+FF = E_B * Omega_squared;
 % ----------------------------------------
 
 % --- Disturbances (wind gust) -------------------------------------------%
@@ -231,10 +232,11 @@ end
 %-------------------------------------------------------------------------%   
 
 % --- Final control signals:
-F = kg*tanh((U_0 + d_0)/kg);
-T_1 = U_1 + d_1;
-T_2 = U_2 + d_2;
-T_3 = U_3 + d_3;
+%F = kg*tanh((U_0 + d_0)/kg);
+F = FF(1) + d_0;
+T_1 = FF(2) + d_1;
+T_2 = FF(3) + d_2;
+T_3 = FF(4) + d_3;
 
 
 if (QQ == 1)

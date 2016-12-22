@@ -36,9 +36,9 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 %=========================================================================%
 
 % === CHOOSE REFERENCE ===================================================%
-% RR = 1; % Z step reference, X & Y = 0
+RR = 1; % Z step reference, X & Y = 0
 % RR = 2; % Spiral trajectory
-RR = 3; % based on sinusoidal function, repeats after 4 sec
+% RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
 % === CHOOSE DISTURBANCE =================================================%
