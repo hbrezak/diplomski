@@ -39,8 +39,14 @@ if (RR == 1)
     dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
     dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
     
-    if (t>3*T/4)    % referentna trajektorija
-        z_d=0;
+    % what ever T is, set step to start at 1 sec. and lower it to 0 at last quarter  
+    if(t<1)
+        z_d = 0;    
+    else if (t>3*T/4)    % referentna trajektorija
+        z_d = 0;
+        else
+            z_d = 1;
+        end
     end
     dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;     
 end
@@ -166,14 +172,14 @@ end
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
+e_z = Z - y(19); % reference smoothing filter 2nd order
 % e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 % de_z_est = de_z; % use measured velocity
 % de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-p = 1; U = 100; % 20, 50, 80, 100
+p = 1; U = 20; % 20, 50, 80, 100
 
 s = de_z_est + p*e_z;
 % s = de_z_est + (k_P/k_D)*e_z;
@@ -185,8 +191,10 @@ ST = -U*sqrt(abs(s))*sign(s) + y(25);
 % U_0 = ST; % add pure super-twisting
 % U_0 = m*ST;
 % U_0 = m*(grav + ST);
-U_0 = m*(grav - U*s + ST);
+% U_0 = m*(grav - U*s + ST);
 % U_0 = m*(grav - k_D*s) + ST;
+kkgg=4;
+U_0 = m*grav + kkgg*tanh( -(m/kkgg)*U*s + (1/kkgg)*ST);
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);

@@ -4,22 +4,22 @@ clear all; close all; clc;
 global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg
 
-T = 40; % Simulation time
+T = 20; % Simulation time
 N = 28; % Number of differential equations
 
 grav = 9.81;
 Ke_lin = 20; % linear velocity estimator gain 
 Ke_st = 10; % super-twisting velocity estimator gain
 Ksf = 1.5; % smoothing filter 
-rho = 20;
-u = 1;
+rho = 20; % larger - faster response
+u = 1; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 % === CHOOSE CONTROLLER ==================================================%
@@ -150,8 +150,11 @@ set(0, 'DefaultFigurePosition', [1367 -281 1920 973]); % set all plots position 
 if (RR == 1) 
     x_d = zeros(size(t));
     y_d = zeros(size(t));
-    z_d = zeros(size(t));
-    z_d = [ones(size(t(1:round(3*end/4)))); zeros(size(t(1:round(1*end/4))))];
+    z_d = zeros(size(t)); %needed to use 'end' below
+    one_sec = (size(z_d, 1)-1)/T; % number of samples in one second
+    
+    % what ever T is, set step to start at 1 sec. and lower it to 0 at last quarter    
+    z_d = [zeros(size(t(1:one_sec))); ones(size(t(1:round(3*end/4)-one_sec))); zeros(size(t(1:round(1*end/4))))];
     dz_d = zeros(size(t));
 end
 if (RR == 2)
