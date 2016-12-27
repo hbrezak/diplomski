@@ -62,14 +62,6 @@ switch SF
 end
 
 
-% === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-% SF = 0; % Z reference w/o smoothing filter
-% SF = 1; % Z reference w/ smoothing filter 1st order
-% SF = 2; % Z reference w/ smoothing filter 2nd order
-SF = 3; % Z reference w/ nonlinear saturated smoothing filter
-%=========================================================================%
-
-
 fprintf('QUADROTOR HELICOPTER MODEL SIMULATION \n');
 fprintf('Simulation runtime: %d sec.\n', T);
 fprintf('Running MODEL %d \n', QQ);

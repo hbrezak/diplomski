@@ -74,20 +74,20 @@ end
 
 % --- Reference smoothing filters ----------------------------------------%
 if (SF == 0) % Z reference w/o smoothing filter
-    z_d_f = z_d;
-    dz_d_f = dz_d;
+    z_df = z_d;
+    dz_df = dz_d;
 end
 if (SF == 1) % Z reference w/ smoothing filter 1st order
-    z_d_f = y(18);
-    dz_d_f = -Ksf*(y(18) - z_d);
+    z_df = y(18);
+    dz_df = -Ksf*(y(18) - z_d);
 end
 if (SF == 2) % Z reference w/ smoothing filter 2nd order
-    z_d_f = y(19);
-    dz_d_f = -Ksf*(y(19) - y(18));
+    z_df = y(19);
+    dz_df = -Ksf*(y(19) - y(18));
 end
 if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
-    z_d_f = y(27);
-    dz_d_f = -rho*tanh(u*(y(27) - z_d));
+    z_df = y(27);
+    dz_df = -rho*tanh(u*(y(27) - z_d));
 end
 %-------------------------------------------------------------------------%
 
@@ -95,7 +95,7 @@ end
 % --- Error variables ----------------------------------------------------% 
 e_x = X-x_d; de_x = dX-dx_d; 
 e_y = Y-y_d; de_y = dY-dy_d;
-e_z = Z-z_d_f; de_z = dZ-dz_d_f;
+e_z = Z-z_df; de_z = dZ-dz_df;
 %-------------------------------------------------------------------------%
 
 % --- Quadrotor parameters(nominal) --------------------------------------%
@@ -109,9 +109,6 @@ Iz = 1.0*Izz;
 
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
-% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 % de_z_est = de_z;
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
@@ -129,9 +126,6 @@ end
 
 if (YY == 2)
 % --- PID controller -----------------------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
-% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
@@ -148,9 +142,6 @@ end
 
 if (YY == 3)
 % --- Trajectory tracking control law ------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
-% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
@@ -173,9 +164,6 @@ end
 
 if (YY == 4)
 % --- Sliding mode 1st order (sign) --------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
-% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
@@ -207,9 +195,6 @@ end
 
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
-% e_z = Z - y(18); % reference smoothing filter 1st order
-% e_z = Z - y(19); % reference smoothing filter 2nd order
-% e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 % de_z_est = de_z; % use measured velocity
 % de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
@@ -398,7 +383,6 @@ dy(16) = T_3;
 
 
 dy(17) = de_z_est; % first order differentiator (velocity estimate)
-
 
 dy(18) = -Ksf*(y(18) - z_d); % 1st order z-reference smoothing filter
 dy(19) = -Ksf*(y(19) - y(18)); % 2nd order z-reference smoothing filter
