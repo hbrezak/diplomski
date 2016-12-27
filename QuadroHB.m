@@ -1,6 +1,6 @@
 function dy = QuadroHB(t,y)
 
-global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
+global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
 
@@ -72,10 +72,30 @@ if (RR == 3)
 end
 %-------------------------------------------------------------------------%
 
+% --- Reference smoothing filters ----------------------------------------%
+if (SF == 0) % Z reference w/o smoothing filter
+    z_d_f = z_d;
+    dz_d_f = dz_d;
+end
+if (SF == 1) % Z reference w/ smoothing filter 1st order
+    z_d_f = y(18);
+    dz_d_f = -Ksf*(y(18) - z_d);
+end
+if (SF == 2) % Z reference w/ smoothing filter 2nd order
+    z_d_f = y(19);
+    dz_d_f = -Ksf*(y(19) - y(18));
+end
+if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
+    z_d_f = y(27);
+    dz_d_f = -rho*tanh(u*(y(27) - z_d));
+end
+%-------------------------------------------------------------------------%
+
+
 % --- Error variables ----------------------------------------------------% 
 e_x = X-x_d; de_x = dX-dx_d; 
 e_y = Y-y_d; de_y = dY-dy_d;
-e_z = Z-z_d; de_z = dZ-dz_d;
+e_z = Z-z_d_f; de_z = dZ-dz_d_f;
 %-------------------------------------------------------------------------%
 
 % --- Quadrotor parameters(nominal) --------------------------------------%
@@ -93,6 +113,7 @@ if (YY == 1)
 % e_z = Z - y(19); % reference smoothing filter 2nd order
 % e_z = Z - y(27); % nonlinear saturated smoothing filter
 
+% de_z_est = de_z;
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
@@ -187,7 +208,7 @@ end
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
 % e_z = Z - y(18); % reference smoothing filter 1st order
-e_z = Z - y(19); % reference smoothing filter 2nd order
+% e_z = Z - y(19); % reference smoothing filter 2nd order
 % e_z = Z - y(27); % nonlinear saturated smoothing filter
 
 % de_z_est = de_z; % use measured velocity
@@ -377,8 +398,10 @@ dy(16) = T_3;
 
 
 dy(17) = de_z_est; % first order differentiator (velocity estimate)
-dy(18) = -Ksf*(y(18) - z_d); % 1st order smoothing filter
-dy(19) = -Ksf*(y(19) - y(18)); % 2nd order smoothing filter
+
+
+dy(18) = -Ksf*(y(18) - z_d); % 1st order z-reference smoothing filter
+dy(19) = -Ksf*(y(19) - y(18)); % 2nd order z-reference smoothing filter
 
 % PID integral part
 dy(20) = e_z;
@@ -392,9 +415,10 @@ if (YY == 4)||(YY == 5)
     % dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
 end
 
+
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
 
-dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated smoothing filter
+dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated z-reference smoothing filter
 
 dy(28) = de_z;
 
@@ -404,7 +428,3 @@ dy(31) = Omega(3);
 dy(32) = Omega(4);
 
 end % function QuadroHB
-
-
-
-

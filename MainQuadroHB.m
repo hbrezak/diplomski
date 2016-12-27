@@ -1,7 +1,7 @@
 % Quadrotor stabilization algorithms comparison
-clear all; close all; clc;
+clear all; clc;
 
-global N T QQ YY DD RR grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
+global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
 
@@ -11,16 +11,16 @@ N = 32; % Number of differential equations
 grav = 9.81;
 Ke_lin = 20; % linear velocity estimator gain 
 Ke_st = 10; % super-twisting velocity estimator gain
-Ksf = 1.5; % smoothing filter 
+Ksf = 20; % smoothing filter 
 rho = 20; % larger - faster response
 u = 1; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-% QQ = 4; % MODEL 4 - linear quadrotor model
+QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 
@@ -40,22 +40,30 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 
 % === CHOOSE REFERENCE ===================================================%
-RR = 1; % Z step reference, X & Y = 0
+% RR = 1; % Z step reference, X & Y = 0
 % RR = 2; % Spiral trajectory
-% RR = 3; % based on sinusoidal function, repeats after 4 sec
+RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-% DD = 0; % without disturbance
+DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
-DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
+% DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 
 % --- Shape:
 d0=1; Sg=5; % short duration, small amplitude
 % d0=4; Sg=0.1; % long duration, large amplitude
+%=========================================================================%
+
+
+% === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
+% SF = 0; % Z reference w/o smoothing filter
+SF = 1; % Z reference w/ smoothing filter 1st order
+% SF = 2; % Z reference w/ smoothing filter 2nd order
+% SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
 
@@ -101,6 +109,7 @@ l = 0.125; % 250 class quadrotor frame
  inv_E_B = inv(E_B);
 %=========================================================================%
 
+output(T, QQ, YY, WW, RR, DD, SF); % output selected parameters
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
@@ -144,7 +153,6 @@ k_1 = -pol_1*pol_2*pol_3 - pol_1*pol_2*pol_4 - pol_2*pol_3*pol_4 - pol_1*pol_3*p
 k_0 = pol_1*pol_2*pol_3*pol_4;
 %-------------------------------------------------------------------------%
 
-output(T, QQ, YY, WW, RR, DD);
 
 if (WW == 1)
 % --- Fixed-step Runge-Kutta 4th order -----------------------------------%
@@ -161,6 +169,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 end
 
 fprintf('Done! \n');
+close all;
 
 % === PLOTS ==============================================================%
 set(0, 'DefaultFigurePosition', [1367 -281 1920 973]); % set all plots position to center of secondary monitor at home

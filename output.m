@@ -1,4 +1,4 @@
-function output(T, QQ, YY, WW, RR, DD)
+function output(T, QQ, YY, WW, RR, DD, SF)
 
 switch YY
     case 1
@@ -48,6 +48,28 @@ switch DD
         disturbance = 'Invalid reference selection';
 end
 
+switch SF
+    case 0
+        Zsmoothing = 'Z reference w/o smoothing filter';
+    case 1
+        Zsmoothing = 'Z reference w/ smoothing filter 1st order';
+    case 2
+        Zsmoothing = 'Z reference w/ smoothing filter 2nd order';
+    case 3
+        Zsmoothing = 'Z reference w/ nonlinear saturated smoothing filter';
+    otherwise
+        Zsmoothing = 'Invalid smoothing filter selection';
+end
+
+
+% === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
+% SF = 0; % Z reference w/o smoothing filter
+% SF = 1; % Z reference w/ smoothing filter 1st order
+% SF = 2; % Z reference w/ smoothing filter 2nd order
+SF = 3; % Z reference w/ nonlinear saturated smoothing filter
+%=========================================================================%
+
+
 fprintf('QUADROTOR HELICOPTER MODEL SIMULATION \n');
 fprintf('Simulation runtime: %d sec.\n', T);
 fprintf('Running MODEL %d \n', QQ);
@@ -55,6 +77,7 @@ fprintf('Selected controller:  YY = %d - %s \n', YY, controller);
 fprintf('Selected solver:      WW = %d - %s \n', WW, solver);
 fprintf('Selected reference:   RR = %d - %s \n', RR, reference);
 fprintf('Selected disturbance: DD = %d - %s \n', DD, disturbance);
+fprintf('Selected smoothing:   SF = %d - %s \n', SF, Zsmoothing);
 fprintf('\nRunning...\n');
 
 end
