@@ -2,16 +2,17 @@
 clear all; clc;
 
 global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf Ksf2 rho u kg 
 global E_B inv_E_B AngVel_limit
 
-T = 20; % Simulation time
-N = 32; % Number of differential equations
+T = 12; % Simulation time
+N = 37; % Number of differential equations
 
 grav = 9.81;
-Ke_lin = 20; % linear velocity estimator gain 
+Ke_lin = 40; % linear velocity estimator gain 
 Ke_st = 10; % super-twisting velocity estimator gain
-Ksf = 20; % smoothing filter 
+Ksf = 20; % smoothing filter
+Ksf2 = 20;
 rho = 20; % larger - faster response
 u = 1; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
@@ -25,11 +26,11 @@ QQ = 4; % MODEL 4 - linear quadrotor model
 
 
 % === CHOOSE CONTROLLER ==================================================%
-% YY = 1; % linear PD control with gravity compensation
+YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
 % YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
-YY = 5; % Super-twisting (2nd order sliding mode) algorithm
+% YY = 5; % Super-twisting (2nd order sliding mode) algorithm
 %=========================================================================%
 
 
@@ -60,9 +61,9 @@ d0=1; Sg=5; % short duration, small amplitude
 
 
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-SF = 0; % Z reference w/o smoothing filter
+% SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
-% SF = 2; % Z reference w/ smoothing filter 2nd order
+SF = 2; % Z reference w/ smoothing filter 2nd order
 % SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
@@ -163,7 +164,7 @@ end
 
 if (WW == 2)
 % --- ODE Runge-Kutta (variable step) ----------------------------------%
-options = odeset('RelTol',1e-6,'AbsTol',1e-6);
+options = odeset('RelTol',1e-3,'AbsTol',1e-3);
 [t,y] = ode45('QuadroHB',[0 T],xx0,options);
 %-------------------------------------------------------------------------%
 end
@@ -307,6 +308,10 @@ Omega2 = diff(y(:,30))./diff(t);
 Omega3 = diff(y(:,31))./diff(t);
 Omega4 = diff(y(:,32))./diff(t);
 
+Znoise = diff(y(:,35))./diff(t);
+Zfiltered1 = y(:,33);
+Zfiltered2 = y(:,34);
+
 % Filtered reference
 figure(5)
 subplot(3,1,1), plot(t, y(:, 18), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
@@ -338,5 +343,43 @@ subplot(2,2,3), plot(td, Omega3, 'b-', 'LineWidth', 4), ylabel('Angular speed [r
 legend('Actuator 3');
 subplot(2,2,4), plot(td, Omega4, 'b-', 'LineWidth', 4), ylabel('Angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('Actuator 4');
+
+figure(9)
+subplot(4,1,1), plot(t, y(:, 5), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('Z','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z signal'), axis([0 4 0 10]);
+subplot(4,1,2), plot(td, Znoise, 'b-', t, z_d, 'r:','Linewidth', 4), ylabel('Znoise','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z with noise'), axis([0 4 0 10]);
+subplot(4,1,3), plot(t, Zfiltered1, 'b-', t, y(:, 18),'r:','Linewidth', 4), ylabel('Zfiltered1','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z filtered once'), axis([0 4 0 10]);
+subplot(4,1,4), plot(t, Zfiltered2, 'b-', t, y(:, 19),'r:','Linewidth', 4), ylabel('Zfiltered2','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z filtered twice'), axis([0 4 0 10]);
+
+dZnoise = diff(y(:,35))./diff(t);
+dZnoise = diff(dZnoise)./diff(td);
+tdd=t(1:(length(td)-1));
+dZfiltered1 = diff(y(:,33))./diff(t);
+dZfiltered2 = diff(y(:,34))./diff(t);
+dZfiltered3 = diff(y(:,37))./diff(t);
+
+
+
+
+figure(10)
+subplot(5,1,1), plot(t, dZ, 'b-', 'Linewidth', 4), ylabel('Z','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z signal'), %axis([0 4 0 10]);
+subplot(5,1,2), plot(tdd, dZnoise, 'b-','Linewidth', 4), ylabel('Znoise','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z with noise'), %axis([0 4 0 10]);
+subplot(5,1,3), plot(td, dZfiltered1, 'b-','Linewidth', 4), ylabel('Zfiltered1','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z filtered once'), %axis([0 4 0 10]);
+subplot(5,1,4), plot(td, dZfiltered2, 'b-','Linewidth', 4), ylabel('Zfiltered2','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z filtered twice'), %axis([0 4 0 10]);
+subplot(5,1,5), plot(td, dZfiltered3, 'b-','Linewidth', 4), ylabel('Zfiltered2','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Z filtered twice'), %axis([0 4 0 10]);
+
+ref = diff(y(:,36))./diff(t);
+figure(11)
+subplot(2,1,1), plot(t, y(:, 5) ,'b-', td, ref, 'r:', 'LineWidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('de_{z, est}', 'de_z');
+subplot(2,1,2), plot(t, Zfiltered2 ,'b-', td, ref, 'r:', 'LineWidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 
 %=========================================================================%

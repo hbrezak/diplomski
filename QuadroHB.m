@@ -1,7 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf Ksf2 rho u kg 
 global E_B inv_E_B AngVel_limit
 
 dy = zeros(N, 1);
@@ -35,6 +35,15 @@ Theta=y(9); dTheta=y(10);
 Psi=y(11); dPsi=y(12);
 %-------------------------------------------------------------------------%
 end
+
+Znoise = Z + 0.3 * 2 * (rand(1, length(Z))-.5);
+
+dy(33) = -Ksf2*(y(33) - Znoise);
+dy(34) = -Ksf2*(y(34) - y(33));
+dy(37) = -Ksf2*(y(37) - y(34));
+Zmf = y(34); % ulazi u e_z = Zmf-z_df;
+dZmf = dy(37); % ulazi u de_z = dZmf-dz_df;
+dy(35) = Znoise; % samo za plot
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
@@ -95,9 +104,9 @@ end
 % --- Error variables ----------------------------------------------------% 
 e_x = X-x_d; de_x = dX-dx_d; 
 e_y = Y-y_d; de_y = dY-dy_d;
-e_z = Z-z_df; de_z = dZ-dz_df;
+e_z = Zmf-z_df; de_z = dZmf-dz_df;
 %-------------------------------------------------------------------------%
-
+dy(36) = z_df;
 % --- Quadrotor parameters(nominal) --------------------------------------%
 % Parametri: m, Ix, Iy, Iz su pretpostavljene vrijednosti realnih
 % parametara mm, Ixx, Iyy, Izz koje koristimo u kontroleru (robusnost)
@@ -111,8 +120,8 @@ if (YY == 1)
 % --- PD controller ------------------------------------------------------%
 
 % de_z_est = de_z;
-de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
+% de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
 % U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
@@ -200,7 +209,7 @@ if (YY == 5)
 % de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-p = 1; U = 20; % 20, 50, 80, 100
+p = 1; U = 100; % 20, 50, 80, 100
 
 s = de_z_est + p*e_z;
 % s = de_z_est + (k_P/k_D)*e_z;
