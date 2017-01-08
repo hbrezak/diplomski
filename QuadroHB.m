@@ -227,15 +227,15 @@ U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 end
 
 % --- Actuator saturation ------------------------------------------------%
-% Omega = sqrt(inv_E_B*[-U_0 U_1 U_2 U_3]');
-% 
-% if (max(Omega) > AngVel_limit)
-%     scale_factor = AngVel_limit/max(Omega);
-%     Omega = Omega .* scale_factor;
-% end
-% %Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
-% 
-% FF = E_B * Omega.^2;
+Omega = sqrt(inv_E_B*[U_0 U_1 U_2 U_3]');
+
+if (max(Omega) > AngVel_limit)
+    scale_factor = AngVel_limit/max(Omega);
+    Omega = Omega .* scale_factor;
+end
+%Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
+
+FF = E_B * Omega.^2;
 %-------------------------------------------------------------------------%
 
 % --- Disturbances (wind gust) -------------------------------------------%
@@ -268,17 +268,17 @@ end
 % --- Final control signals:
 %F = kg*tanh((U_0 + d_0)/kg);
 
-% F = FF(1) + d_0;
-% % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-% T_1 = FF(2) + d_1;
-% T_2 = FF(3) + d_2;
-% T_3 = FF(4) + d_3;
-
-F = U_0 + d_0;
+F = FF(1) + d_0;
 % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-T_1 = U_1 + d_1;
-T_2 = U_2 + d_2;
-T_3 = U_3 + d_3;
+T_1 = FF(2) + d_1;
+T_2 = FF(3) + d_2;
+T_3 = FF(4) + d_3;
+
+% F = U_0 + d_0;
+% % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
+% T_1 = U_1 + d_1;
+% T_2 = U_2 + d_2;
+% T_3 = U_3 + d_3;
 
 
 if (QQ == 1)
@@ -412,9 +412,9 @@ dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated z-reference smoothing 
 
 dy(28) = de_z;
 
-% dy(29) = Omega(1);
-% dy(30) = Omega(2);
-% dy(31) = Omega(3);
-% dy(32) = Omega(4);
+dy(29) = Omega(1);
+dy(30) = Omega(2);
+dy(31) = Omega(3);
+dy(32) = Omega(4);
 
 end % function QuadroHB

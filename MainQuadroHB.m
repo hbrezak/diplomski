@@ -105,7 +105,7 @@ l = 0.125; % 250 class quadrotor frame
  d = 2.67*10^-8; % drag factor
  AngVel_limit = 2000; % [rad/s]; calculated maximum is 2102.8 rad/s
 
- E_B = [-b -b -b -b; l*b -l*b -l*b l*b; -l*b l*b -l*b l*b; d d -d -d];
+ E_B = [b b b b; l*b -l*b -l*b l*b; -l*b l*b -l*b l*b; d d -d -d];
  inv_E_B = inv(E_B);
 %=========================================================================%
 
