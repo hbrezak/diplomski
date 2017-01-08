@@ -115,8 +115,8 @@ de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
-% U_0 = m*(grav - k_D*de_z_est - k_P*e_z); % velocity is not measured, derivatives are estimated
-U_0 = max((m*(grav - k_D*de_z_est - k_P*e_z)), 0); % limit to positive numbers only
+U_0 = m*(grav + k_D*de_z_est + k_P*e_z); % velocity is not measured, derivatives are estimated
+% U_0 = max((m*(grav - k_D*de_z_est - k_P*e_z)), 0); % limit to positive numbers only
 
 U_1 = -k_D*dPhi - k_P*Phi;
 U_2 = -k_D*dTheta - k_P*Theta;
@@ -227,15 +227,15 @@ U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 end
 
 % --- Actuator saturation ------------------------------------------------%
-Omega = sqrt(inv_E_B*[U_0 U_1 U_2 U_3]');
-
-if (max(Omega) > AngVel_limit)
-    scale_factor = AngVel_limit/max(Omega);
-    Omega = Omega .* scale_factor;
-end
-%Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
-
-FF = E_B * Omega.^2;
+% Omega = sqrt(inv_E_B*[-U_0 U_1 U_2 U_3]');
+% 
+% if (max(Omega) > AngVel_limit)
+%     scale_factor = AngVel_limit/max(Omega);
+%     Omega = Omega .* scale_factor;
+% end
+% %Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
+% 
+% FF = E_B * Omega.^2;
 %-------------------------------------------------------------------------%
 
 % --- Disturbances (wind gust) -------------------------------------------%
@@ -268,11 +268,17 @@ end
 % --- Final control signals:
 %F = kg*tanh((U_0 + d_0)/kg);
 
-F = FF(1) + d_0;
+% F = FF(1) + d_0;
+% % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
+% T_1 = FF(2) + d_1;
+% T_2 = FF(3) + d_2;
+% T_3 = FF(4) + d_3;
+
+F = U_0 + d_0;
 % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-T_1 = FF(2) + d_1;
-T_2 = FF(3) + d_2;
-T_3 = FF(4) + d_3;
+T_1 = U_1 + d_1;
+T_2 = U_2 + d_2;
+T_3 = U_3 + d_3;
 
 
 if (QQ == 1)
@@ -294,8 +300,8 @@ S = @(x) [0 -x(3) x(2); x(3) 0 -x(1); -x(2) x(1) 0];
 
 M = [mm*eye(3) zeros(3); zeros(3) I_B*eye(3)];
 C = [zeros(3) -S(mm*Velocity_Lin_B); zeros(3) -S(I_B*Velocity_Ang_B)];
-G = [R_B2E'*[0; 0; -mm*grav]; zeros(3,1)];
-U_B = [0; 0; F; T_1; T_2; T_3];
+G = [R_B2E'*[0; 0; mm*grav]; zeros(3,1)];
+U_B = [0; 0; -F; T_1; T_2; T_3];
 
 dy(1:3) = R_B2E*Velocity_Lin_B;
 dy(4:6) = T_B2E*Velocity_Ang_B;
@@ -406,9 +412,9 @@ dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated z-reference smoothing 
 
 dy(28) = de_z;
 
-dy(29) = Omega(1);
-dy(30) = Omega(2);
-dy(31) = Omega(3);
-dy(32) = Omega(4);
+% dy(29) = Omega(1);
+% dy(30) = Omega(2);
+% dy(31) = Omega(3);
+% dy(32) = Omega(4);
 
 end % function QuadroHB

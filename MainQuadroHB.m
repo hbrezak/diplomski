@@ -17,19 +17,19 @@ u = 1; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 
 % === CHOOSE CONTROLLER ==================================================%
-% YY = 1; % linear PD control with gravity compensation
+YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
 % YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
-YY = 5; % Super-twisting (2nd order sliding mode) algorithm
+% YY = 5; % Super-twisting (2nd order sliding mode) algorithm
 %=========================================================================%
 
 
@@ -40,9 +40,9 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 
 % === CHOOSE REFERENCE ===================================================%
-% RR = 1; % Z step reference, X & Y = 0
+RR = 1; % Z step reference, X & Y = 0
 % RR = 2; % Spiral trajectory
-RR = 3; % based on sinusoidal function, repeats after 4 sec
+% RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
 
@@ -105,7 +105,7 @@ l = 0.125; % 250 class quadrotor frame
  d = 2.67*10^-8; % drag factor
  AngVel_limit = 2000; % [rad/s]; calculated maximum is 2102.8 rad/s
 
- E_B = [b b b b; 0 -l*b 0 l*b; -l*b 0 l*b 0; -d d -d d];
+ E_B = [-b -b -b -b; l*b -l*b -l*b l*b; -l*b l*b -l*b l*b; d d -d -d];
  inv_E_B = inv(E_B);
 %=========================================================================%
 
