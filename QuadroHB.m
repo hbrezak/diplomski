@@ -114,9 +114,9 @@ if (YY == 1)
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-% U_0 = m*(grav - k_D*dZ - k_P*e_z); % z velocity is measured (dZ known)
-U_0 = m*(grav + k_D*de_z_est + k_P*e_z); % velocity is not measured, derivatives are estimated
-% U_0 = max((m*(grav - k_D*de_z_est - k_P*e_z)), 0); % limit to positive numbers only
+% U_0 = m*(grav + k_D*dZ + k_P*e_z); % z velocity is measured (dZ known)
+% U_0 = m*(grav + k_D*de_z_est + k_P*e_z); % velocity is not measured, derivatives are estimated
+U_0 = max((m*(grav + k_D*de_z_est + k_P*e_z)), 0); % limit to positive numbers only
 
 U_1 = -k_D*dPhi - k_P*Phi;
 U_2 = -k_D*dTheta - k_P*Theta;
@@ -130,9 +130,9 @@ if (YY == 2)
 de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-% U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
-% U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
-U_0 = max((m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20)), 0); % limit to positive numbers only
+% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
+% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
+U_0 = max((m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20)), 0); % limit to positive numbers only
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -146,9 +146,9 @@ if (YY == 3)
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-% U_0 = -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control
-% U_0 = m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20); % PID control w/ gravity compensation
-U_0 = max(m*grav -kk_D*de_z_est - kk_P*e_z - kk_I*y(20), 0); % limit to positive numbers only
+% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
+% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
+U_0 = max(m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20), 0); % limit to positive numbers only
 
 dde_x = (grav/m)*Theta - ddx_d;
 d3e_x = (grav/m)*dTheta - d3x_d;
@@ -173,19 +173,19 @@ U = 20; % 4 values tested: 20, 50, 100, 150
 % s = de_z + p*e_z;
 s = de_z_est + p*e_z;
 
-% U_0 = -U*sign(s);
-% U_0 = -m*U*sign(s);
-% U_0 = m*(grav - U*sign(s));
-% U_0 = m*(grav - U*s - U*sign(s));
+% U_0 = U*sign(s);
+% U_0 = m*U*sign(s);
+% U_0 = m*(grav + U*sign(s));
+% U_0 = m*(grav + U*s - U*sign(s));
 
-% U_0 = m*(grav - U*s - U*( s / (abs(s) + eps) ) );
+% U_0 = m*(grav + U*s + U*( s / (abs(s) + eps) ) );
 
-U_0 = max(m*(grav - U*s - U*sign(s)), 0); % limit to positive numbers only
+U_0 = max(m*(grav + U*s + U*sign(s)), 0); % limit to positive numbers only
 
 % s = de_z_est + (k_P/k_D)*e_z;
-% U_0 = m*(grav - k_D*s - k_D*sign(s));
-% U_0 = m*(grav - k_D*s - k_D*( s / (abs(s) + eps) ) );
-% U_0 = max((m*(grav - k_D*s - k_D*( s / (abs(s) + eps) ) )), 0); % limit to positive numbers only
+% U_0 = m*(grav + k_D*s + k_D*sign(s));
+% U_0 = m*(grav + k_D*s + k_D*( s / (abs(s) + eps) ) );
+% U_0 = max((m*(grav + k_D*s + k_D*( s / (abs(s) + eps) ) )), 0); % limit to positive numbers only
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
@@ -218,7 +218,7 @@ ST = -U*sqrt(abs(s))*sign(s) + y(25);
 %k_m = 4;
 %U_0 = m*grav + k_m*tanh( -(m/k_m)*U*s + (1/k_m)*ST);
 
-U_0 = max((m*grav -m*U*s + ST), 0); % limit to positive numbers only
+U_0 = max((m*grav + m*U*s - ST), 0); % limit to positive numbers only
 
 U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
 U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
