@@ -316,13 +316,13 @@ sPsi = sin(Psi); cPsi = cos(Psi);
 if (QQ == 2)
 % --- MODEL 2 ------------------------------------------------------------%
 dy(1) = y(2);
-dy(2) = (sPsi*sPhi + cPsi*sTheta*cPhi) * (F/mm);
+dy(2) = (sPsi*sPhi + cPsi*sTheta*cPhi) * (-F/mm);
 
 dy(3) = y(4);
-dy(4) = (-cPsi*sPhi + sPsi*sTheta*cPhi) * (F/mm);
+dy(4) = (-cPsi*sPhi + sPsi*sTheta*cPhi) * (-F/mm);
 
 dy(5) = y(6);
-dy(6) = -grav + (cTheta*cPhi)*(F/mm);
+dy(6) = grav + (cTheta*cPhi)*(-F/mm);
 
 dy(7) = y(8);
 dy(8) = ((Iyy-Izz)/Ixx)*dTheta*dPsi + (T_1/Ixx);
@@ -339,13 +339,13 @@ end
 if (QQ == 3)
 % --- MODEL 3 ------------------------------------------------------------%
 dy(1) = y(2);
-dy(2) = Theta * (F/mm);
+dy(2) = Theta * (-F/mm);
 
 dy(3) = y(4);
-dy(4) = -Phi * (F/mm);
+dy(4) = -Phi * (-F/mm);
 
 dy(5) = y(6);
-dy(6) = -grav + F/mm;
+dy(6) = grav - F/mm;
 
 dy(7) = y(8);
 dy(8) = T_1/Ixx;
@@ -362,13 +362,13 @@ end
 if (QQ == 4)
 % --- MODEL 4 ------------------------------------------------------------%
 dy(1) = y(2);
-dy(2) = Theta * grav;
+dy(2) = -Theta * grav;
 
 dy(3) = y(4);
-dy(4) = -Phi * grav;
+dy(4) = Phi * grav;
 
 dy(5) = y(6);
-dy(6) = -grav + F/mm;
+dy(6) = grav - F/mm;
 
 dy(7) = y(8);
 dy(8) = T_1/Ixx;
