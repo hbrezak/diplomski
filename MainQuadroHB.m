@@ -17,9 +17,9 @@ u = 1; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
-% QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
+QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
 % QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
@@ -27,9 +27,9 @@ QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
-% YY = 3; % Trajectory tracking control law - Z axis PID controller
+YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
-YY = 5; % Super-twisting (2nd order sliding mode) algorithm
+% YY = 5; % Super-twisting (2nd order sliding mode) algorithm
 %=========================================================================%
 
 
@@ -40,8 +40,8 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 
 % === CHOOSE REFERENCE ===================================================%
-RR = 1; % Z step reference, X & Y = 0
-% RR = 2; % Spiral trajectory
+% RR = 1; % Z step reference, X & Y = 0
+RR = 2; % Spiral trajectory
 % RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
@@ -60,9 +60,9 @@ d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 
 
 
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-% SF = 0; % Z reference w/o smoothing filter
+SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
-SF = 2; % Z reference w/ smoothing filter 2nd order
+% SF = 2; % Z reference w/ smoothing filter 2nd order
 % SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 

@@ -150,14 +150,14 @@ de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
 U_0 = max(m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20), 0); % limit to positive numbers only
 
-dde_x = (grav/m)*Theta - ddx_d;
-d3e_x = (grav/m)*dTheta - d3x_d;
+dde_x = (-grav/m)*Theta - ddx_d;
+d3e_x = (-grav/m)*dTheta - d3x_d;
 
-dde_y = (-grav/m)*Phi - ddy_d;
-d3e_y = (-grav/m)*dPhi - d3y_d;
+dde_y = (grav/m)*Phi - ddy_d;
+d3e_y = (grav/m)*dPhi - d3y_d;
 
-U_1 = ((-m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
-U_2 = ((m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
+U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
+U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
 U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
