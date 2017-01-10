@@ -5,7 +5,7 @@ global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 step
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
 
-T = 20; % Simulation time
+T = 40; % Simulation time
 N = 32; % Number of differential equations
 
 grav = 9.81;
@@ -19,8 +19,8 @@ kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 % === CHOOSE MODEL =======================================================%
 % QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
-QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-% QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
+QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 
@@ -41,8 +41,8 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 
 % === CHOOSE REFERENCE ===================================================%
-RR = 1; % Z step reference, X & Y = 0
-% RR = 2; % Spiral trajectory
+% RR = 1; % Z step reference, X & Y = 0
+RR = 2; % Spiral trajectory
 % RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
@@ -53,10 +53,11 @@ DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
+% DD = 4;
 
 % --- Shape:
-% d0=1; Sg=5; % short duration, small amplitude
-d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 46 km/h
+d0=1; Sg=5; % short duration, small amplitude
+% d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 46 km/h
 %=========================================================================%
 
 
@@ -74,7 +75,8 @@ if (QQ == 1)
    xx0(4)=0*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
 end
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
-   xx0(7)=2*0.1; xx0(9)=2*0.1; xx0(11)=1*0.1; % initial angles
+   xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
+   xx0(1) = 0.5; %X0?
 end
 %=========================================================================%
 
@@ -157,7 +159,7 @@ k_0 = pol_1*pol_2*pol_3*pol_4;
 
 if (WW == 1)
 % --- Fixed-step Runge-Kutta 4th order -----------------------------------%
-tspan = [0 T]; Nstep = 20000; DeltaT = T/Nstep;
+tspan = [0 T]; Nstep = 10000; DeltaT = T/Nstep;
 [t, y] = rk4(@QuadroHB, tspan, xx0, DeltaT);
 end
 %-------------------------------------------------------------------------%
@@ -210,6 +212,10 @@ d_0 = d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-
 end
 if (DD == 3)
 d_0 = d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2);
+end
+if (DD == 4)
+d_mx = 1.5 + 2.5*sin(4*t);
+d_my = 2.5 + 1.5*sin(3*t);
 end
 %-------------------------------------------------------------------------%
 
@@ -298,6 +304,16 @@ figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijed
 subplot(2,3,1), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('de_{z, est}', 'de_z');
 subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+
+%---3D trajektorija--------------------------------------------%
+figure(9)
+plot3(y(:,1),y(:,3),y(:,5), 'b', x_d, y_d, z_d, 'r:', 'linewidth',3)
+ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'), 
+% axis([-1.1 1.1 -1.1 1.1 0 20])
+set(gca,'fontsize',14,'FontName','Times'), 
+grid on
+axis square
+%--------------------------------------------------------------%
 %--------------------------------------------------------------%
 end % MODEL SPECIFIC
 
@@ -318,8 +334,17 @@ subplot(3,1,3), plot(t, y(:, 27), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z
 legend('Saturated nonlinear smoothing filter', 'Z position reference');
 
 % Disturbance
+if (DD == 1) || (DD == 2) || (DD == 3)
 figure(6)
 plot(t, d_0, 'b-', 'Linewidth', 4), ylabel('Wind gust', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+end
+if (DD == 4)
+figure(6)
+subplot(2,1,1),
+plot(t, d_mx, 'b-', 'Linewidth', 4), ylabel('Wind gust x direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+subplot(2,1,2),
+plot(t, d_my, 'b-', 'Linewidth', 4), ylabel('Wind gust y direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+end
 
 % Sliding variable s
 if (YY == 4) || (YY == 5)

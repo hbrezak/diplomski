@@ -54,13 +54,20 @@ if (RR == 1)
     dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;     
 end
 if (RR == 2)
-    x_d = -Ay0*0 + Ay0*cos(Vx0*t);
-    y_d = Ay0*sin(Vx0*t);
-    z_d = Vx0*t;    
-    
-    dx_d = -Ay0*Vx0*sin(Vx0*t); ddx_d = -Ay0*Vx0^2*cos(Vx0*t); d3x_d = Ay0*Vx0^3*sin(Vx0*t); d4x_d = Ay0*Vx0^4*cos(Vx0*t);
-    dy_d = Ay0*Vx0*cos(Vx0*t); ddy_d = -Ay0*Vx0^2*sin(Vx0*t); d3y_d = -Ay0*Vx0^3*cos(Vx0*t); d4y_d = Ay0*Vx0^4*sin(Vx0*t);
-    dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
+%     x_d = -Ay0*0 + Ay0*cos(Vx0*t);
+%     y_d = Ay0*sin(Vx0*t);
+%     z_d = Vx0*t;    
+%     
+%     dx_d = -Ay0*Vx0*sin(Vx0*t); ddx_d = -Ay0*Vx0^2*cos(Vx0*t); d3x_d = Ay0*Vx0^3*sin(Vx0*t); d4x_d = Ay0*Vx0^4*cos(Vx0*t);
+%     dy_d = Ay0*Vx0*cos(Vx0*t); ddy_d = -Ay0*Vx0^2*sin(Vx0*t); d3y_d = -Ay0*Vx0^3*cos(Vx0*t); d4y_d = Ay0*Vx0^4*sin(Vx0*t);
+%     dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
+x_d = cos(0.5*t);
+y_d = sin(0.5*t);
+z_d = 0.5*t;
+
+dx_d = -0.5*sin(0.5*t); ddx_d = -0.25*cos(0.5*t); d3x_d = 0.125*sin(0.5*t); d4x_d = 0.0625*cos(0.5*t);
+dy_d = 0.5*cos(0.5*t); ddy_d = -0.25*sin(0.5*t); d3y_d = -0.125*cos(0.5*t); d4y_d = 0.0625*sin(0.5*t);
+dz_d = 0.5; ddz_d = 0; d3z_d = 0; d4z_d = 0;
 end
 if (RR == 3)
     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
@@ -239,22 +246,28 @@ dde_y = Phi*grav - ddy_d;
 d3e_y = dPhi*grav - d3y_d;
 
 U = 20;
-p = 1;
+
+% Sliding surfaces
+p = 1; lambda = 1;
 s0 = de_z + p*e_z;
 s1 = d3e_y + 3*p*dde_y + 3*(p^2)*de_y + (p^3)*e_y;
 s2 = d3e_x + 3*p*dde_x + 3*(p^2)*de_x + (p^3)*e_x;
 s3 = dPsi + p*Psi;
 
+kx3 = 3*p + 1; kx2 = 3*(p^2)+1*3*p; kx1 = (p^3)+1*3*(p^2); kx0 = 1*(p^3);
+
+% 1-SM controllers
 SM_0 = -U*sign(s0);
 SM_1 = -U*sign(s1);
 SM_2 = -U*sign(s2);
 SM_PSI = -U*sign(s3);
 
-U_0 = -m*(ddz_d - grav -k_D*de_z - k_P*e_z); %- SM_0;
-
-U_1 = (Ix/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);% + SM_1;
-U_2 = (-Iy/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);% - SM_2;
-U_3 = Iz*(-k_D*dPsi - k_P*Psi);% + SM_PSI;
+% Control laws
+U_0 = max((-m*(ddz_d - grav -k_D*de_z - k_P*e_z) - SM_0), 0);
+U_1 = (Ix/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y) + SM_1;
+U_2 = (-Iy/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x) - SM_2;
+%U_2 = (-Iy/grav)*(d4x_d - kx3*d3e_x - kx2*dde_x - kx1*de_x - kx0*e_x) - SM_2;
+U_3 = Iz*(-k_D*dPsi - k_P*Psi) + SM_PSI;
 %-------------------------------------------------------------------------%
 end
 
@@ -284,34 +297,41 @@ if (DD == 1)
 end
 
 if (DD == 2)
-    d_0 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
-    d_1 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_0 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_1 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
     d_2 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
     d_3 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) + d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) + d0*exp(-Sg*(t+5-4*T/4).^2));
 end
 
 if (DD == 3)
-    d_0 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_0 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
     d_1 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
-    d_2 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
+    d_2 = 1*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
     d_3 = 0*(d0*exp(-Sg*(t+5-1*T/4).^2) - d0*exp(-Sg*(t+5-2*T/4).^2) + d0*exp(-Sg*(t+5-3*T/4).^2) - d0*exp(-Sg*(t+5-4*T/4).^2));
+end
+
+if (DD == 4)
+    d_0 = 0;
+    d_1 = 2.5 + 1.5*sin(3*t);
+    d_2 = 1.5 + 2.5*sin(4*t);
+    d_3 = 0;
 end
 %-------------------------------------------------------------------------%   
 
 % --- Final control signals:
 %F = kg*tanh((U_0 + d_0)/kg);
 
-F = FF(1) + d_0;
-% fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-T_1 = FF(2) + d_1;
-T_2 = FF(3) + d_2;
-T_3 = FF(4) + d_3;
-
-% F = U_0 + d_0;
+% F = FF(1) + d_0;
 % % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-% T_1 = U_1 + d_1;
-% T_2 = U_2 + d_2;
-% T_3 = U_3 + d_3;
+% T_1 = FF(2) + d_1;
+% T_2 = FF(3) + d_2;
+% T_3 = FF(4) + d_3;
+
+F = U_0 + d_0;
+% fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
+T_1 = U_1 + d_1;
+T_2 = U_2 + d_2;
+T_3 = U_3 + d_3;
 
 
 if (QQ == 1)
