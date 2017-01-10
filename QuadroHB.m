@@ -312,10 +312,15 @@ k_psi0 = alpha_psi0 * lambda_3;
 
 
 % 1-SM controllers
-SM_0 = -Uz*sign(s0);
-SM_1 = -Uy*sign(s1);
-SM_2 = -Ux*sign(s2);
-SM_PSI = -Upsi*sign(s3);
+% SM_0 = -Uz*sign(s0);
+% SM_1 = -Uy*sign(s1);
+% SM_2 = -Ux*sign(s2);
+% SM_PSI = -Upsi*sign(s3);
+
+SM_0 = -Uz*tanh(20*s0);
+SM_1 = -Uy*tanh(20*s1);
+SM_2 = -Ux*tanh(20*s2);
+SM_PSI = -Upsi*tanh(20*s3);
 
 % Control laws
 U_0 = max((-m*(ddz_d - grav -k_D*de_z - k_P*e_z) - SM_0), 0);

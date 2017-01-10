@@ -11,9 +11,9 @@ N = 38; % Number of differential equations
 grav = 9.81;
 Ke_lin = 20; % linear velocity estimator gain 
 Ke_st = 10; % super-twisting velocity estimator gain
-Ksf = 1.5; % smoothing filter %could be higher == faster response
-rho = 20; % larger - faster response
-u = 1; % larger - sharper change
+Ksf = 40; % smoothing filter %could be higher == faster response
+rho = 80; % larger - faster response
+u = 5; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
@@ -27,10 +27,10 @@ QQ = 4; % MODEL 4 - linear quadrotor model
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
-YY = 3; % Trajectory tracking control law - Z axis PID controller
+% YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
 % YY = 5; % Super-twisting (2nd order sliding mode) algorithm
-% YY = 6; % 1-SM trajectory tracking control law
+YY = 6; % 1-SM trajectory tracking control law
 %=========================================================================%
 
 
@@ -49,11 +49,11 @@ RR = 2; % Spiral trajectory
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-DD = 0; % without disturbance
+% DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
-% DD = 4;
+DD = 4;
 
 % --- Shape:
 d0=1; Sg=5; % short duration, small amplitude
@@ -62,10 +62,10 @@ d0=1; Sg=5; % short duration, small amplitude
 
 
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-SF = 0; % Z reference w/o smoothing filter
+% SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
 % SF = 2; % Z reference w/ smoothing filter 2nd order
-% SF = 3; % Z reference w/ nonlinear saturated smoothing filter
+SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
 
@@ -189,10 +189,13 @@ if (RR == 1)
     dz_d = zeros(size(t));
 end
 if (RR == 2)
-    x_d = -Ay0*0 + Ay0*cos(Vx0*t);
-    y_d = Ay0*sin(Vx0*t);
-    z_d = Vx0*t;
-    dz_d = Vx0*ones(size(t));
+%     x_d = -Ay0*0 + Ay0*cos(Vx0*t);
+%     y_d = Ay0*sin(Vx0*t);
+%     z_d = Vx0*t;
+%     dz_d = Vx0*ones(size(t));
+x_d = cos(0.5*t);
+y_d = sin(0.5*t);
+z_d = 0.5*t;
 end
 if (RR == 3)
     x_d = zeros(size(t));
@@ -306,8 +309,8 @@ legend('de_{z, est}', 'de_z');
 subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
 
 %---3D trajektorija--------------------------------------------%
-figure(9)
-plot3(y(:,1),y(:,3),y(:,5), 'b', x_d, y_d, z_d, 'r:', 'linewidth',3)
+figure(11)
+plot3(y(:,1),y(:,3),y(:,5), 'b', y(:,36),y(:,35),y(:,19), 'r:', 'linewidth',3)
 ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'), 
 % axis([-1.1 1.1 -1.1 1.1 0 20])
 set(gca,'fontsize',14,'FontName','Times'), 
