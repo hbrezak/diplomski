@@ -269,7 +269,7 @@ d3e_x = -dTheta*grav - d3x_d;
 dde_y = Phi*grav - ddy_d;
 d3e_y = dPhi*grav - d3y_d;
 
-U = 20;
+%U = 20;
 
 % Sliding surfaces
 % p = 1; lambda = 1;
