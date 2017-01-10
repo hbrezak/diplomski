@@ -6,7 +6,7 @@ global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u
 global E_B inv_E_B AngVel_limit
 
 T = 40; % Simulation time
-N = 32; % Number of differential equations
+N = 38; % Number of differential equations
 
 grav = 9.81;
 Ke_lin = 20; % linear velocity estimator gain 
@@ -27,10 +27,10 @@ QQ = 4; % MODEL 4 - linear quadrotor model
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
-% YY = 3; % Trajectory tracking control law - Z axis PID controller
+YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
 % YY = 5; % Super-twisting (2nd order sliding mode) algorithm
-YY = 6; % 1-SM trajectory tracking control law
+% YY = 6; % 1-SM trajectory tracking control law
 %=========================================================================%
 
 
@@ -331,6 +331,22 @@ legend('1st order smoothing filter', 'Z position reference');
 subplot(3,1,2), plot(t, y(:, 19), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('2nd order smoothing filter', 'Z position reference');
 subplot(3,1,3), plot(t, y(:, 27), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Saturated nonlinear smoothing filter', 'Z position reference');
+
+figure(9)
+subplot(3,1,1), plot(t, y(:, 33), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('1st order smoothing filter', 'Z position reference');
+subplot(3,1,2), plot(t, y(:, 35), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('2nd order smoothing filter', 'Z position reference');
+subplot(3,1,3), plot(t, y(:, 37), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('Saturated nonlinear smoothing filter', 'Z position reference');
+
+figure(10)
+subplot(3,1,1), plot(t, y(:, 34), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('1st order smoothing filter', 'Z position reference');
+subplot(3,1,2), plot(t, y(:, 36), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('2nd order smoothing filter', 'Z position reference');
+subplot(3,1,3), plot(t, y(:, 38), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('Saturated nonlinear smoothing filter', 'Z position reference');
 
 % Disturbance

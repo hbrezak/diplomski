@@ -83,25 +83,49 @@ end
 if (SF == 0) % Z reference w/o smoothing filter
     z_df = z_d;
     dz_df = dz_d;
+    
+    y_df = y_d;
+    dy_df = dy_d;
+    
+    x_df = x_d;
+    dx_df = dx_d;
 end
 if (SF == 1) % Z reference w/ smoothing filter 1st order
     z_df = y(18);
     dz_df = -Ksf*(y(18) - z_d);
+    
+    y_df = y(33);
+    dy_df = -Ksf*(y(33) - y_d);
+    
+    x_df = y(34);
+    dx_df = -Ksf*(y(34) - x_d);
 end
 if (SF == 2) % Z reference w/ smoothing filter 2nd order
     z_df = y(19);
     dz_df = -Ksf*(y(19) - y(18));
+    
+    y_df = y(35);
+    dy_df = -Ksf*(y(35) - y(33));
+    
+    x_df = y(36);
+    dx_df = -Ksf*(y(36) - y(34));
 end
 if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
     z_df = y(27);
     dz_df = -rho*tanh(u*(y(27) - z_d));
+    
+    y_df = y(37);
+    dy_df = -rho*tanh(u*(y(37) - y_d));
+    
+    x_df = y(38);
+    dx_df = -rho*tanh(u*(y(38) - x_d));
 end
 %-------------------------------------------------------------------------%
 
 
 % --- Error variables ----------------------------------------------------% 
-e_x = X-x_d; de_x = dX-dx_d; 
-e_y = Y-y_d; de_y = dY-dy_d;
+e_x = X-x_df; de_x = dX-dx_df; 
+e_y = Y-y_df; de_y = dY-dy_df;
 e_z = Z-z_df; de_z = dZ-dz_df;
 %-------------------------------------------------------------------------%
 
@@ -248,19 +272,50 @@ d3e_y = dPhi*grav - d3y_d;
 U = 20;
 
 % Sliding surfaces
-p = 1; lambda = 1;
-s0 = de_z + p*e_z;
-s1 = d3e_y + 3*p*dde_y + 3*(p^2)*de_y + (p^3)*e_y;
-s2 = d3e_x + 3*p*dde_x + 3*(p^2)*de_x + (p^3)*e_x;
-s3 = dPsi + p*Psi;
+% p = 1; lambda = 1;
+% s0 = de_z + p*e_z;
+% s1 = d3e_y + 3*p*dde_y + 3*(p^2)*de_y + (p^3)*e_y;
+% s2 = d3e_x + 3*p*dde_x + 3*(p^2)*de_x + (p^3)*e_x;
+% s3 = dPsi + p*Psi;
+% 
+% kx3 = 3*p + 1; kx2 = 3*(p^2)+1*3*p; kx1 = (p^3)+1*3*(p^2); kx0 = 1*(p^3);
 
-kx3 = 3*p + 1; kx2 = 3*(p^2)+1*3*p; kx1 = (p^3)+1*3*(p^2); kx0 = 1*(p^3);
+lambda_0 = 3; alpha_z0 = 3; Uz = 0;
+lambda_2 = 3; alpha_x2 = 9; alpha_x1 = 27; alpha_x0 = 27; Ux = 4;
+lambda_1 = 3; alpha_y2 = 9; alpha_y1 = 27; alpha_y0 = 27; Uy = 4;
+lambda_3 = 3; alpha_psi0 = 3; Upsi = 0;
+
+% Z
+s0 = de_z + alpha_z0*e_z;
+k_z1 = alpha_z0 + lambda_0;
+k_z0 = alpha_z0*lambda_0;
+
+%X
+s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x + alpha_x0*e_x;
+k_x3 = alpha_x2 + lambda_2;
+k_x2 = alpha_x1 + lambda_2*alpha_x2;
+k_x1 = alpha_x0 + lambda_2*alpha_x1;
+k_x0 = lambda_2 * alpha_x0;
+
+%Y
+s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y + alpha_y0*e_y;
+k_y3 = alpha_y2 + lambda_1;
+k_y2 = alpha_y1 + lambda_1*alpha_y2;
+k_y1 = alpha_y0 + lambda_1*alpha_y1;
+k_y0 = lambda_1 * alpha_y0;
+
+% PSI
+s3 = dPsi + alpha_psi0*Psi;
+k_psi1 = alpha_psi0 + lambda_3;
+k_psi0 = alpha_psi0 * lambda_3;
+
+
 
 % 1-SM controllers
-SM_0 = -U*sign(s0);
-SM_1 = -U*sign(s1);
-SM_2 = -U*sign(s2);
-SM_PSI = -U*sign(s3);
+SM_0 = -Uz*sign(s0);
+SM_1 = -Uy*sign(s1);
+SM_2 = -Ux*sign(s2);
+SM_PSI = -Upsi*sign(s3);
 
 % Control laws
 U_0 = max((-m*(ddz_d - grav -k_D*de_z - k_P*e_z) - SM_0), 0);
@@ -443,8 +498,67 @@ dy(16) = T_3;
 
 dy(17) = de_z_est; % first order differentiator (velocity estimate)
 
-dy(18) = -Ksf*(y(18) - z_d); % 1st order z-reference smoothing filter
-dy(19) = -Ksf*(y(19) - y(18)); % 2nd order z-reference smoothing filter
+%dy(18) = -Ksf*(y(18) - z_d); % 1st order z-reference smoothing filter
+%dy(19) = -Ksf*(y(19) - y(18)); % 2nd order z-reference smoothing filter
+% 
+% if (SF == 1) % Z reference w/ smoothing filter 1st order
+%     z_df = y(18);
+%     dz_df = -Ksf*(y(18) - z_d);
+%     
+%     y_df = y(33);
+%     dy_df = -Ksf*(y(33) - y_d);
+%     
+%     x_df = y(34);
+%     dx_df = -Ksf*(y(34) - x_d);
+% end
+% if (SF == 2) % Z reference w/ smoothing filter 2nd order
+%     z_df = y(19);
+%     dz_df = -Ksf*(y(19) - y(18));
+%     
+%     y_df = y(35);
+%     dy_df = -Ksf*(y(35) - y(33));
+%     
+%     x_df = y(36);
+%     dx_df = -Ksf*(y(36) - y(34));
+% end
+% if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
+%     z_df = y(27);
+%     dz_df = -rho*tanh(u*(y(27) - z_d));
+%     
+%     y_df = y(37);
+%     dy_df = -rho*tanh(u*(y(37) - y_d));
+%     
+%     x_df = y(38);
+%     dx_df = -rho*tanh(u*(y(38) - x_d));
+% end
+
+% SMOOTHING FILTERS
+if (SF == 0) % Z reference w/o smoothing filter
+end
+if (SF == 1) % Z reference w/ smoothing filter 1st order
+    dy(18) = dz_df;
+    dy(33) = dy_df;
+    dy(34) = dx_df;
+end
+if (SF == 2) % Z reference w/ smoothing filter 2nd order
+    dy(18) = -Ksf*(y(18) - z_d);
+    dy(19) = dz_df;
+    dy(33) = -Ksf*(y(33) - y_d);
+    dy(35) = dy_df;
+    dy(34) = -Ksf*(y(34) - x_d);
+    dy(36) = dx_df;
+end
+if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter  
+    dy(27) = dz_df;
+    dy(37) = dy_df;
+    dy(38) = dx_df;
+end
+
+
+
+
+
+
 
 % PID integral part
 dy(20) = e_z;
@@ -461,7 +575,7 @@ end
 
 dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
 
-dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated z-reference smoothing filter
+%dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated z-reference smoothing filter
 
 dy(28) = de_z;
 
