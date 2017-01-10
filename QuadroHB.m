@@ -226,6 +226,39 @@ U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
 
+if (YY == 6)
+% --- Trajectory tracking control law ------------------------------------%
+
+de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
+
+dde_x = -Theta*grav - ddx_d;
+d3e_x = -dTheta*grav - d3x_d;
+
+dde_y = Phi*grav - ddy_d;
+d3e_y = dPhi*grav - d3y_d;
+
+U = 20;
+p = 1;
+s0 = de_z + p*e_z;
+s1 = d3e_y + 3*p*dde_y + 3*(p^2)*de_y + (p^3)*e_y;
+s2 = d3e_x + 3*p*dde_x + 3*(p^2)*de_x + (p^3)*e_x;
+s3 = dPsi + p*Psi;
+
+SM_0 = -U*sign(s0);
+SM_1 = -U*sign(s1);
+SM_2 = -U*sign(s2);
+SM_PSI = -U*sign(s3);
+
+U_0 = -m*(ddz_d - grav -k_D*de_z - k_P*e_z); %- SM_0;
+
+U_1 = (Ix/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);% + SM_1;
+U_2 = (-Iy/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);% - SM_2;
+U_3 = Iz*(-k_D*dPsi - k_P*Psi);% + SM_PSI;
+%-------------------------------------------------------------------------%
+end
+
+
 % --- Actuator saturation ------------------------------------------------%
 Omega = sqrt(inv_E_B*[U_0 U_1 U_2 U_3]');
 

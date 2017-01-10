@@ -27,9 +27,10 @@ QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
-YY = 3; % Trajectory tracking control law - Z axis PID controller
+% YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
 % YY = 5; % Super-twisting (2nd order sliding mode) algorithm
+YY = 6; % 1-SM trajectory tracking control law
 %=========================================================================%
 
 
@@ -40,8 +41,8 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 
 % === CHOOSE REFERENCE ===================================================%
-% RR = 1; % Z step reference, X & Y = 0
-RR = 2; % Spiral trajectory
+RR = 1; % Z step reference, X & Y = 0
+% RR = 2; % Spiral trajectory
 % RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
