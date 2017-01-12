@@ -187,8 +187,8 @@ d3e_x = (-grav/m)*dTheta - d3x_d;
 dde_y = (grav/m)*Phi - ddy_d;
 d3e_y = (grav/m)*dPhi - d3y_d;
 
-U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
-U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
+U_1 = ((Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
+U_2 = ((-Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
 U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
 %-------------------------------------------------------------------------%
 end
@@ -280,34 +280,36 @@ d3e_y = dPhi*grav - d3y_d;
 % 
 % kx3 = 3*p + 1; kx2 = 3*(p^2)+1*3*p; kx1 = (p^3)+1*3*(p^2); kx0 = 1*(p^3);
 
-lambda_0 = 3; alpha_z0 = 3; Uz = 0;
-lambda_2 = 3; alpha_x2 = 9; alpha_x1 = 27; alpha_x0 = 27; Ux = 4;
-lambda_1 = 3; alpha_y2 = 9; alpha_y1 = 27; alpha_y0 = 27; Uy = 4;
-lambda_3 = 3; alpha_psi0 = 3; Upsi = 0;
+lambda = 16; p = 16; K = 25;
+alpha_z0 = p;
+alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
+alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
+alpha_psi0 = p;
 
+Uz = 0; Ux = 4; Uy = 4; Upsi = 0;
 % Z
 s0 = de_z + alpha_z0*e_z;
-k_z1 = alpha_z0 + lambda_0;
-k_z0 = alpha_z0*lambda_0;
+k_z1 = alpha_z0 + lambda;
+k_z0 = alpha_z0*lambda;
 
 %X
 s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x + alpha_x0*e_x;
-k_x3 = alpha_x2 + lambda_2;
-k_x2 = alpha_x1 + lambda_2*alpha_x2;
-k_x1 = alpha_x0 + lambda_2*alpha_x1;
-k_x0 = lambda_2 * alpha_x0;
+k_x3 = alpha_x2 + lambda;
+k_x2 = alpha_x1 + lambda*alpha_x2;
+k_x1 = alpha_x0 + lambda*alpha_x1;
+k_x0 = lambda * alpha_x0;
 
 %Y
 s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y + alpha_y0*e_y;
-k_y3 = alpha_y2 + lambda_1;
-k_y2 = alpha_y1 + lambda_1*alpha_y2;
-k_y1 = alpha_y0 + lambda_1*alpha_y1;
-k_y0 = lambda_1 * alpha_y0;
+k_y3 = alpha_y2 + lambda;
+k_y2 = alpha_y1 + lambda*alpha_y2;
+k_y1 = alpha_y0 + lambda*alpha_y1;
+k_y0 = lambda * alpha_y0;
 
 % PSI
 s3 = dPsi + alpha_psi0*Psi;
-k_psi1 = alpha_psi0 + lambda_3;
-k_psi0 = alpha_psi0 * lambda_3;
+k_psi1 = alpha_psi0 + lambda;
+k_psi0 = alpha_psi0 * lambda;
 
 
 
@@ -317,17 +319,17 @@ k_psi0 = alpha_psi0 * lambda_3;
 % SM_2 = -Ux*sign(s2);
 % SM_PSI = -Upsi*sign(s3);
 
-SM_0 = -Uz*tanh(20*s0);
-SM_1 = -Uy*tanh(20*s1);
-SM_2 = -Ux*tanh(20*s2);
-SM_PSI = -Upsi*tanh(20*s3);
+SM_0 = -Uz*tanh(K*s0);
+SM_1 = -Uy*tanh(K*s1);
+SM_2 = -Ux*tanh(K*s2);
+SM_PSI = -Upsi*tanh(K*s3);
 
 % Control laws
-U_0 = max((-m*(ddz_d - grav -k_D*de_z - k_P*e_z) - SM_0), 0);
-U_1 = (Ix/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y) + SM_1;
-U_2 = (-Iy/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x) - SM_2;
+U_0 = max((-m*(ddz_d - grav -k_z1*de_z - k_z0*e_z) - SM_0), 0);
+U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y - k_y0*e_y) + SM_1;
+U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x - k_x0*e_x) -SM_2;
 %U_2 = (-Iy/grav)*(d4x_d - kx3*d3e_x - kx2*dde_x - kx1*de_x - kx0*e_x) - SM_2;
-U_3 = Iz*(-k_D*dPsi - k_P*Psi) + SM_PSI;
+U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + SM_PSI;
 %-------------------------------------------------------------------------%
 end
 

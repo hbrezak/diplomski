@@ -62,10 +62,10 @@ d0=1; Sg=5; % short duration, small amplitude
 
 
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-% SF = 0; % Z reference w/o smoothing filter
+SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
 % SF = 2; % Z reference w/ smoothing filter 2nd order
-SF = 3; % Z reference w/ nonlinear saturated smoothing filter
+% SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
 
@@ -89,13 +89,20 @@ end
 % mm=0.5; Ixx = 0.005; Iyy = 0.005; Izz = 0.009; 
 
 % "Dynamic modeling and nonlinear control strategy for an underactuated quad rotor rotorcraft":
-mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309; 
+% mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309; 
 
 % "Backstepping Control for a Quadrotor Helicopter":
 % mm=2; Ixx = 1.2416; Iyy = 1.2416; Izz = 2.4832; l = 0.1; d = 0.0000001; b=0.0000008;
     % l - dist to COM; b - thrust factor; d - drag factor
     % (l, b, d) notation used in bible; 
     % values l,d,b modified from original paper data (d, /, c)
+
+% "Robust output tracking control of a quadrotor in the presence of
+% external disturbances" (prof. Kasa?, FAMENA 2013.):
+% mm=1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
+
+% Solidworks data for 250 class quad
+mm = 0.53; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
 
 Ixy = 0; Iyz = 0; Ixz = 0;
 I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
@@ -270,18 +277,18 @@ if (QQ == 2)||(QQ == 3)||(QQ == 4)
 % --- MODEL 2 - MODEL 3 - MODEL 4 ----------------------------------------%
 % Trajectories
 figure(1)
-subplot(2,3,1), plot(t,y(:,1),'b', t, y(:, 38),'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,2), plot(t,y(:,3),'b', t, y(:, 37),'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,3), plot(t,y(:,5),'b', t, y(:, 27),'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), plot(t,y(:,1),'b', t, x_d,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), plot(t,y(:,3),'b', t, y_d,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), plot(t,y(:,5),'b', t, z_d,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,4), plot(t,y(:,7),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,5), plot(t,y(:,9),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Errors
 figure(2)
-subplot(2,3,1), semilogy(t,abs(y(:,1)-y(:, 38)), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,2), semilogy(t,abs(y(:,3)-y(:, 37)), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,3), semilogy(t,abs(y(:,5)-y(:, 27)), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), semilogy(t,abs(y(:,1)-x_d), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), semilogy(t,abs(y(:,3)-y_d), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), semilogy(t,abs(y(:,5)-z_d), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Thrust force and torques
 F=diff(y(:,13))./diff(t);
@@ -310,7 +317,7 @@ subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel(
 
 %---3D trajektorija--------------------------------------------%
 figure(11)
-plot3(y(:,1),y(:,3),y(:,5), 'b', y(:,38),y(:,37),y(:,27), 'r:', 'linewidth',3)
+plot3(y(:,1),y(:,3),y(:,5), 'b', x_d, y_d ,z_d, 'r:', 'linewidth',3)
 ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'), 
 % axis([-1.1 1.1 -1.1 1.1 0 20])
 set(gca,'fontsize',14,'FontName','Times'), 
