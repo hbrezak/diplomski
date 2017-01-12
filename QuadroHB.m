@@ -65,9 +65,9 @@ x_d = cos(0.5*t);
 y_d = sin(0.5*t);
 z_d = 0.5*t;
 
-dx_d = -0.5*sin(0.5*t); ddx_d = -0.25*cos(0.5*t); d3x_d = 0.125*sin(0.5*t); d4x_d = 0.0625*cos(0.5*t);
-dy_d = 0.5*cos(0.5*t); ddy_d = -0.25*sin(0.5*t); d3y_d = -0.125*cos(0.5*t); d4y_d = 0.0625*sin(0.5*t);
-dz_d = 0.5; ddz_d = 0; d3z_d = 0; d4z_d = 0;
+% dx_d = -0.5*sin(0.5*t); ddx_d = -0.25*cos(0.5*t); d3x_d = 0.125*sin(0.5*t); d4x_d = 0.0625*cos(0.5*t);
+% dy_d = 0.5*cos(0.5*t); ddy_d = -0.25*sin(0.5*t); d3y_d = -0.125*cos(0.5*t); d4y_d = 0.0625*sin(0.5*t);
+% dz_d = 0.5; ddz_d = 0; d3z_d = 0; d4z_d = 0;
 end
 if (RR == 3)
     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
@@ -109,6 +109,18 @@ if (SF == 2) % Z reference w/ smoothing filter 2nd order
     
     x_df = y(36);
     dx_df = -Ksf*(y(36) - y(34));
+    
+    ddz_d = -Ksf*(y(39) - dz_df);
+    ddy_d = -Ksf*(y(40) - dy_df);
+    ddx_d = -Ksf*(y(41) - dx_df);
+    
+    d3z_d = -Ksf*(y(42) - ddz_d);
+    d3y_d = -Ksf*(y(43) - ddy_d);
+    d3x_d = -Ksf*(y(44) - ddx_d);
+    
+    d4z_d = -Ksf*(y(45) - d3z_d);
+    d4y_d = -Ksf*(y(46) - d3y_d);
+    d4x_d = -Ksf*(y(47) - d3x_d);
 end
 if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
     z_df = y(27);
@@ -328,17 +340,18 @@ SM_PSI = -Upsi*tanh(K*s3);
 U_0 = max((-m*(ddz_d - grav -k_z1*de_z - k_z0*e_z) - SM_0), 0);
 U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y - k_y0*e_y) + SM_1;
 U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x - k_x0*e_x) -SM_2;
-%U_2 = (-Iy/grav)*(d4x_d - kx3*d3e_x - kx2*dde_x - kx1*de_x - kx0*e_x) - SM_2;
 U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + SM_PSI;
 %-------------------------------------------------------------------------%
 end
 
 
 % --- Actuator saturation ------------------------------------------------%
-Omega = sqrt(inv_E_B*[U_0 U_1 U_2 U_3]');
+Omega = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
 
 if (max(Omega) > AngVel_limit)
     scale_factor = AngVel_limit/max(Omega);
+    Omega
+    Omegaaa = Omega .* scale_factor
     Omega = Omega .* scale_factor;
 end
 %Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
@@ -383,17 +396,17 @@ end
 % --- Final control signals:
 %F = kg*tanh((U_0 + d_0)/kg);
 
-% F = FF(1) + d_0;
-% % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-% T_1 = FF(2) + d_1;
-% T_2 = FF(3) + d_2;
-% T_3 = FF(4) + d_3;
-
-F = U_0 + d_0;
+F = FF(1) + d_0;
 % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-T_1 = U_1 + d_1;
-T_2 = U_2 + d_2;
-T_3 = U_3 + d_3;
+T_1 = FF(2) + d_1;
+T_2 = FF(3) + d_2;
+T_3 = FF(4) + d_3;
+
+% F = U_0 + d_0;
+% % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
+% T_1 = U_1 + d_1;
+% T_2 = U_2 + d_2;
+% T_3 = U_3 + d_3;
 
 
 if (QQ == 1)
@@ -590,5 +603,17 @@ dy(29) = Omega(1);
 dy(30) = Omega(2);
 dy(31) = Omega(3);
 dy(32) = Omega(4);
+
+dy(39) = ddz_d;
+dy(40) = ddy_d;
+dy(41) = ddx_d;
+    
+dy(42) = d3z_d;
+dy(43) = d3y_d;
+dy(44) = d3x_d;
+    
+dy(45) = d4z_d;
+dy(46) = d4y_d;
+dy(47) = d4x_d;  
 
 end % function QuadroHB
