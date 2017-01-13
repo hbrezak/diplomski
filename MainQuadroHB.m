@@ -11,7 +11,7 @@ N = 47; % Number of differential equations
 grav = 9.81;
 Ke_lin = 20; % linear velocity estimator gain 
 Ke_st = 10; % super-twisting velocity estimator gain
-Ksf = 2.5; % smoothing filter %could be higher == faster response
+Ksf = 40; % smoothing filter %could be higher == faster response
 rho = 80; % larger - faster response
 u = 5; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
@@ -49,11 +49,11 @@ RR = 2; % Spiral trajectory
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-DD = 0; % without disturbance
+% DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
-% DD = 4;
+DD = 4;
 
 % --- Shape:
 d0=1; Sg=5; % short duration, small amplitude
@@ -99,10 +99,10 @@ end
 
 % "Robust output tracking control of a quadrotor in the presence of
 % external disturbances" (prof. Kasac, FAMENA 2013.):
-% mm=1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
+mm=1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
 
 % Solidworks data for 250 class quad
-mm = 0.53; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
+% mm = 0.53; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
 
 Ixy = 0; Iyz = 0; Ixz = 0;
 I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
@@ -115,7 +115,7 @@ l = 0.125; % 250 class quadrotor frame
  d = 2.67*10^-8; % drag factor
  AngVel_limit = 2000; % [rad/s]; calculated maximum is 2102.8 rad/s
 
- E_B = [b b b b; -l*b l*b l*b -l*b; -l*b -l*b l*b l*b; -d d -d d];
+E_B = [b b b b; l*b -l*b -l*b l*b; -l*b l*b -l*b l*b; d d -d -d];
  inv_E_B = inv(E_B);
 %=========================================================================%
 

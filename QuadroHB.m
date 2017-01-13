@@ -191,7 +191,7 @@ de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
 
 % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
 % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
-U_0 = max(m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20), 0); % limit to positive numbers only
+U_0 = max(-m*(-grav + ddz_d -kk_D*de_z_est - kk_P*e_z - kk_I*y(20)), 0); % limit to positive numbers only
 
 dde_x = (-grav/m)*Theta - ddx_d;
 d3e_x = (-grav/m)*dTheta - d3x_d;
@@ -199,9 +199,9 @@ d3e_x = (-grav/m)*dTheta - d3x_d;
 dde_y = (grav/m)*Phi - ddy_d;
 d3e_y = (grav/m)*dPhi - d3y_d;
 
-U_1 = ((Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
-U_2 = ((-Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
-U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
+U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
+U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
+U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(23));
 %-------------------------------------------------------------------------%
 end
 
@@ -243,7 +243,7 @@ if (YY == 5)
 % de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
 de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
-p = 1; U = 20; % 20, 50, 80, 100
+p = 3; U = 20; % 20, 50, 80, 100
 
 s = de_z_est + p*e_z;
 % s = de_z_est + (k_P/k_D)*e_z;
@@ -292,7 +292,7 @@ d3e_y = dPhi*grav - d3y_d;
 % 
 % kx3 = 3*p + 1; kx2 = 3*(p^2)+1*3*p; kx1 = (p^3)+1*3*(p^2); kx0 = 1*(p^3);
 
-lambda = 16; p = 16; K = 25;
+lambda = 3; p = 3; K = 20;
 alpha_z0 = p;
 alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
 alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
@@ -350,8 +350,6 @@ Omega = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
 
 if (max(Omega) > AngVel_limit)
     scale_factor = AngVel_limit/max(Omega);
-    Omega
-    Omegaaa = Omega .* scale_factor
     Omega = Omega .* scale_factor;
 end
 %Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
@@ -396,17 +394,17 @@ end
 % --- Final control signals:
 %F = kg*tanh((U_0 + d_0)/kg);
 
-F = FF(1) + d_0;
-% fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-T_1 = FF(2) + d_1;
-T_2 = FF(3) + d_2;
-T_3 = FF(4) + d_3;
-
-% F = U_0 + d_0;
+% F = FF(1) + d_0;
 % % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
-% T_1 = U_1 + d_1;
-% T_2 = U_2 + d_2;
-% T_3 = U_3 + d_3;
+% T_1 = FF(2) + d_1;
+% T_2 = FF(3) + d_2;
+% T_3 = FF(4) + d_3;
+
+F = U_0 + d_0;
+% fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
+T_1 = U_1 + d_1;
+T_2 = U_2 + d_2;
+T_3 = U_3 + d_3;
 
 
 if (QQ == 1)
