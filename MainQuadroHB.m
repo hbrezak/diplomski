@@ -6,12 +6,12 @@ global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u
 global E_B inv_E_B AngVel_limit
 
 T = 40; % Simulation time
-N = 58; % Number of differential equations
+N = 64; % Number of differential equations
 
 grav = 9.81;
-Ke_lin = 20; % linear velocity estimator gain 
-Ke_st = 10; % super-twisting velocity estimator gain
-Ksf = 40; % smoothing filter %could be higher == faster response
+Ke_lin = 30; % linear velocity estimator gain 
+Ke_st = 50; % super-twisting velocity estimator gain
+Ksf = 4; % smoothing filter %could be higher == faster response
 rho = 80; % larger - faster response
 u = 5; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
@@ -50,22 +50,23 @@ RR = 2; % Spiral trajectory
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-DD = 0; % without disturbance
-% DD = 1; % single wind gust at T/2
+% DD = 0; % without disturbance
+DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 % DD = 4;
 
 % --- Shape:
-d0=1; Sg=5; % short duration, small amplitude
-% d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 46 km/h
+% d0=1; Sg=5; % short duration, small amplitude
+%d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 46 km/h
+d0=2; Sg=0.3; % estimate of wind gust 36 km/h, duration 5 sec
 %=========================================================================%
 
 
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
 % SF = 0; % Z reference w/o smoothing filter
-SF = 1; % Z reference w/ smoothing filter 1st order
-% SF = 2; % Z reference w/ smoothing filter 2nd order
+% SF = 1; % Z reference w/ smoothing filter 1st order
+SF = 2; % Z reference w/ smoothing filter 2nd order
 % SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
@@ -100,10 +101,10 @@ end
 
 % "Robust output tracking control of a quadrotor in the presence of
 % external disturbances" (prof. Kasac, FAMENA 2013.):
-% mm=1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
+mm=1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
 
 % Solidworks data for 250 class quad
-mm = 0.53; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
+% mm = 0.53; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
 
 Ixy = 0; Iyz = 0; Ixz = 0;
 I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
@@ -273,9 +274,9 @@ end
 
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
 % --- MODEL 2 - MODEL 3 - MODEL 4 ----------------------------------------%
-x_df = y(:, 34);
-y_df = y(:, 33);
-z_df = y(:, 18);
+x_df = y(:, 36);
+y_df = y(:, 35);
+z_df = y(:, 19);
 
 
 % Trajectories
@@ -300,8 +301,12 @@ T2=diff(y(:,15))./diff(t);
 T3=diff(y(:,16))./diff(t);
 
 de_z_est = diff(y(:,17))./diff(t);
+de_y_est = diff(y(:,59))./diff(t);
+de_x_est = diff(y(:,60))./diff(t);
 dZ = y(:,6); % z velocity
 de_z = diff(y(:,28))./diff(t);
+de_y = diff(y(:,63))./diff(t);
+de_x = diff(y(:,64))./diff(t);
 
 td=t(1:(length(t)-1));
 
@@ -317,6 +322,15 @@ figure(4) % usporedi izlaz filtra za estimaciju brzine(od greske) i prave vrijed
 subplot(2,3,1), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('de_{z, est}', 'de_z');
 subplot(2,3,4), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+
+subplot(2,3,2), plot(td, de_y_est,'b-', td, de_y, 'r:', 'linewidth',4), ylabel('e_y, e_{y,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('de_{y, est}', 'de_y');
+subplot(2,3,5), semilogy(td, abs(de_y - de_y_est), '-b', 'linewidth',4), ylabel('|de_y - de_{y,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+
+subplot(2,3,3), plot(td, de_x_est,'b-', td, de_x, 'r:', 'linewidth',4), ylabel('e_x, e_{x,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+legend('de_{x, est}', 'de_x');
+subplot(2,3,6), semilogy(td, abs(de_x - de_x_est), '-b', 'linewidth',4), ylabel('|de_x - de_{x,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+
 
 %---3D trajektorija--------------------------------------------%
 figure(11)
