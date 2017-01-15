@@ -10,7 +10,7 @@ N = 64; % Number of differential equations
 
 grav = 9.81;
 Ke_lin = 30; % linear velocity estimator gain 
-Ke_st = 50; % super-twisting velocity estimator gain
+Ke_st = 40; % super-twisting velocity estimator gain
 Ksf = 4; % smoothing filter %could be higher == faster response
 rho = 80; % larger - faster response
 u = 5; % larger - sharper change
@@ -50,8 +50,8 @@ RR = 2; % Spiral trajectory
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-% DD = 0; % without disturbance
-DD = 1; % single wind gust at T/2
+DD = 0; % without disturbance
+% DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 % DD = 4;

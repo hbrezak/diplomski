@@ -342,13 +342,13 @@ if (YY == 7)
 % --- Super-twisting Trajectory tracking control law ------------------------------------%
 
 %de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
-de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
+%de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
+%de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
 
-L = 1; lam1 = 1.5*sqrt(L); lam0 = 1.1*L; 
-de_z_est = -lam1*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
-% de_y_est = -lam1*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
-% de_x_est = -lam1*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
+
+de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
+de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
+de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
 % 
 % de_z_est = de_z;
 % de_y_est = de_y;
@@ -366,9 +366,9 @@ lambdaz = 1; pz = 1;
 alpha_z0 = pz;
 alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
 alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
-alpha_psi0 = p;
+alpha_psi0 = pz;
 
-Uz = 1; Ux = 4; Uy = 4; Upsi = 4;
+Uz = 0; Ux = 4; Uy = 4; Upsi = 0;
 % Z
 s0 = de_z_est + alpha_z0*e_z;
 k_z1 = alpha_z0 + lambdaz;
@@ -390,8 +390,8 @@ k_y0 = lambda * alpha_y0;
 
 % PSI
 s3 = dPsi + alpha_psi0*Psi;
-k_psi1 = alpha_psi0 + lambda;
-k_psi0 = alpha_psi0 * lambda;
+k_psi1 = alpha_psi0 + lambdaz;
+k_psi0 = alpha_psi0 * lambdaz;
 
 c0 = 1.5*sqrt(Uz); b0 = 1.1*Uz;
 c1 = 1.5*sqrt(Uy); b1 = 1.1*Uy;
@@ -411,9 +411,9 @@ ST_PSI = -c3*sqrt(abs(s3))*sign(s3) + y(51);
 
 % Control laws
 u0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - ST_0), 0);
-u1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y);% + ST_1;
-u2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x);% - ST_2;
-u3 = Iz*(-k_psi1*dPsi - k_psi0*Psi);% + ST_PSI;
+u1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + ST_1;
+u2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) - ST_2;
+u3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
 
 dy(55) = -rho*tanh(u*(y(55) - u0));
 dy(56) = -rho*tanh(u*(y(56) - u1));
@@ -607,6 +607,7 @@ dy(17) = de_z_est; % first order differentiator (velocity estimate)
 dy(59) = de_y_est; % first order differentiator (velocity estimate)
 dy(60) = de_x_est; % first order differentiator (velocity estimate)
 
+
 %dy(18) = -Ksf*(y(18) - z_d); % 1st order z-reference smoothing filter
 %dy(19) = -Ksf*(y(19) - y(18)); % 2nd order z-reference smoothing filter
 
@@ -650,13 +651,12 @@ if (YY == 4)||(YY == 5)
     dy(25) = -U*sign(s); % part of super-twisting algorithm
     % dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
 end
-% de_z_est = -lam1*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
-% de_y_est = -lam1*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
-% de_x_est = -lam1*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
 
-dy(26) = -lam0*sign(y(17)-e_z); % part of super-twisting estimator
-dy(61) = -lam0*sign(y(59)-e_y); % part of super-twisting estimator
-dy(62) = -lam0*sign(y(60)-e_x); % part of super-twisting estimator
+%dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
+
+dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
+dy(61) = -Ke_st*sign(y(59)-e_y); % part of super-twisting estimator
+dy(62) = -Ke_st*sign(y(60)-e_x); % part of super-twisting estimator
 
 %dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated z-reference smoothing filter
 
