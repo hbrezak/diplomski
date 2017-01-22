@@ -181,6 +181,8 @@ if (YY == 3)
 % --- Trajectory tracking control law ------------------------------------%
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
+de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
@@ -193,8 +195,8 @@ d3e_x = (-grav/m)*dTheta - d3x_d;
 dde_y = (grav/m)*Phi - ddy_d;
 d3e_y = (grav/m)*dPhi - d3y_d;
 
-U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y - k_0*e_y);
-U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x - k_0*e_x);
+U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y_est - k_0*e_y);
+U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x_est - k_0*e_x);
 U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(23));
 %-------------------------------------------------------------------------%
 end
@@ -267,89 +269,14 @@ if (YY == 6)
 % --- 1-SM Trajectory tracking control law ------------------------------------%
 
 de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
+de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
+
+
 % de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
+% de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
+% de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
 
-dde_x = -Theta*grav - ddx_d;
-d3e_x = -dTheta*grav - d3x_d;
-
-dde_y = Phi*grav - ddy_d;
-d3e_y = dPhi*grav - d3y_d;
-
-%U = 20;
-
-% Sliding surfaces
-% p = 1; lambda = 1;
-% s0 = de_z + p*e_z;
-% s1 = d3e_y + 3*p*dde_y + 3*(p^2)*de_y + (p^3)*e_y;
-% s2 = d3e_x + 3*p*dde_x + 3*(p^2)*de_x + (p^3)*e_x;
-% s3 = dPsi + p*Psi;
-% 
-% kx3 = 3*p + 1; kx2 = 3*(p^2)+1*3*p; kx1 = (p^3)+1*3*(p^2); kx0 = 1*(p^3);
-
-lambda = 3; p = 3; K = 20;
-alpha_z0 = p;
-alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
-alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
-alpha_psi0 = p;
-
-Uz = 0; Ux = 4; Uy = 4; Upsi = 0;
-% Z
-s0 = de_z + alpha_z0*e_z;
-k_z1 = alpha_z0 + lambda;
-k_z0 = alpha_z0*lambda;
-
-%X
-s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x + alpha_x0*e_x;
-k_x3 = alpha_x2 + lambda;
-k_x2 = alpha_x1 + lambda*alpha_x2;
-k_x1 = alpha_x0 + lambda*alpha_x1;
-k_x0 = lambda * alpha_x0;
-
-%Y
-s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y + alpha_y0*e_y;
-k_y3 = alpha_y2 + lambda;
-k_y2 = alpha_y1 + lambda*alpha_y2;
-k_y1 = alpha_y0 + lambda*alpha_y1;
-k_y0 = lambda * alpha_y0;
-
-% PSI
-s3 = dPsi + alpha_psi0*Psi;
-k_psi1 = alpha_psi0 + lambda;
-k_psi0 = alpha_psi0 * lambda;
-
-
-
-% 1-SM controllers
-% SM_0 = -Uz*sign(s0);
-% SM_1 = -Uy*sign(s1);
-% SM_2 = -Ux*sign(s2);
-% SM_PSI = -Upsi*sign(s3);
-
-SM_0 = -Uz*tanh(K*s0);
-SM_1 = -Uy*tanh(K*s1);
-SM_2 = -Ux*tanh(K*s2);
-SM_PSI = -Upsi*tanh(K*s3);
-
-% Control laws
-U_0 = max((-m*(ddz_d - grav -k_z1*de_z - k_z0*e_z) - SM_0), 0);
-U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y - k_y0*e_y) + SM_1;
-U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x - k_x0*e_x) -SM_2;
-U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + SM_PSI;
-%-------------------------------------------------------------------------%
-end
-
-if (YY == 7)
-% --- Super-twisting Trajectory tracking control law ------------------------------------%
-
-%de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-%de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
-%de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
-
-
-de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
-de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
-de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
-% 
 % de_z_est = de_z;
 % de_y_est = de_y;
 % de_x_est = de_x;
@@ -360,8 +287,12 @@ d3e_x = -dTheta*grav - d3x_d;
 dde_y = Phi*grav - ddy_d;
 d3e_y = dPhi*grav - d3y_d;
 
+%U = 20;
+
+K = 20;
 % Sliding surfaces
-lambda = 3; p = 3;
+%lambda = 3; p = 3;
+lambda = 5; p = 5;
 lambdaz = 1; pz = 1;
 alpha_z0 = pz;
 alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
@@ -393,21 +324,92 @@ s3 = dPsi + alpha_psi0*Psi;
 k_psi1 = alpha_psi0 + lambdaz;
 k_psi0 = alpha_psi0 * lambdaz;
 
-c0 = 1.5*sqrt(Uz); b0 = 1.1*Uz;
-c1 = 1.5*sqrt(Uy); b1 = 1.1*Uy;
-c2 = 1.5*sqrt(Ux); b2 = 1.1*Ux;
-c3 = 1.5*sqrt(Upsi); b3 = 1.1*Upsi;
 
 
-% ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(48);
-% ST_1 = -Uy*sqrt(abs(s1))*sign(s1) + y(49);
-% ST_2 = -Ux*sqrt(abs(s2))*sign(s2) + y(50);
-% ST_PSI = -Upsi*sqrt(abs(s3))*sign(s3) + y(51);
+%1-SM controllers
+SM_0 = -Uz*sign(s0);
+SM_1 = -Uy*sign(s1);
+SM_2 = -Ux*sign(s2);
+SM_PSI = -Upsi*sign(s3);
 
-ST_0 = -c0*sqrt(abs(s0))*sign(s0) + y(48);
-ST_1 = -c1*sqrt(abs(s1))*sign(s1) + y(49);
-ST_2 = -c2*sqrt(abs(s2))*sign(s2) + y(50);
-ST_PSI = -c3*sqrt(abs(s3))*sign(s3) + y(51);
+% SM_0 = -Uz*tanh(K*s0);
+% SM_1 = -Uy*tanh(K*s1);
+% SM_2 = -Ux*tanh(K*s2);
+% SM_PSI = -Upsi*tanh(K*s3);
+
+% Control laws
+U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - SM_0), 0);
+U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + SM_1;
+U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) -SM_2;
+U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + SM_PSI;
+%-------------------------------------------------------------------------%
+end
+
+if (YY == 7)
+% --- Super-twisting Trajectory tracking control law ------------------------------------%
+
+de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
+de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
+de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
+
+
+% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
+% de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
+% de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
+
+% de_z_est = de_z;
+% de_y_est = de_y;
+% de_x_est = de_x;
+
+dde_x = -Theta*grav - ddx_d;
+d3e_x = -dTheta*grav - d3x_d;
+
+dde_y = Phi*grav - ddy_d;
+d3e_y = dPhi*grav - d3y_d;
+
+% Sliding surfaces
+%lambda = 3; p = 3;
+lambda = 5; p = 5;
+lambdaz = 1; pz = 1;
+alpha_z0 = pz;
+alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
+alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
+alpha_psi0 = pz;
+
+% bez poremecaja daje dosta dobre rezultate:
+% lambda = 3; p = 3;
+% lambdaz = 1; pz = 1;
+% mm = 0.53; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
+% Uz = 0; Ux = 0.01; Uy = 0.01; Upsi = 0;
+Uz = 0; Ux = 0.6; Uy = 0.6; Upsi = 0;
+% Z
+s0 = de_z_est + alpha_z0*e_z;
+k_z1 = alpha_z0 + lambdaz;
+k_z0 = alpha_z0*lambdaz;
+
+%X
+s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x_est + alpha_x0*e_x;
+k_x3 = alpha_x2 + lambda;
+k_x2 = alpha_x1 + lambda*alpha_x2;
+k_x1 = alpha_x0 + lambda*alpha_x1;
+k_x0 = lambda * alpha_x0;
+
+%Y
+s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y_est + alpha_y0*e_y;
+k_y3 = alpha_y2 + lambda;
+k_y2 = alpha_y1 + lambda*alpha_y2;
+k_y1 = alpha_y0 + lambda*alpha_y1;
+k_y0 = lambda * alpha_y0;
+
+% PSI
+s3 = dPsi + alpha_psi0*Psi;
+k_psi1 = alpha_psi0 + lambdaz;
+k_psi0 = alpha_psi0 * lambdaz;
+
+ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(48);
+ST_1 = -Uy*sqrt(abs(s1))*sign(s1) + y(49);
+ST_2 = -Ux*sqrt(abs(s2))*sign(s2) + y(50);
+ST_PSI = -Upsi*sqrt(abs(s3))*sign(s3) + y(51);
 
 % Control laws
 u0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - ST_0), 0);
@@ -435,15 +437,17 @@ end
 
 
 % --- Actuator saturation ------------------------------------------------%
-Omega = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
-% 
-% if (max(Omega) > AngVel_limit)
-%     scale_factor = AngVel_limit/max(Omega);
-%     Omega = Omega .* scale_factor;
-% end
-% %Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
-% 
-% FF = E_B * Omega.^2;
+Omega_orig = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
+
+if (max(Omega_orig) > AngVel_limit)
+    scale_factor = AngVel_limit/max(Omega_orig);
+    Omega = Omega_orig .* scale_factor;
+else
+    Omega = Omega_orig;
+end
+%Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
+
+FF = E_B * Omega.^2;
 %-------------------------------------------------------------------------%
 
 % --- Disturbances (wind gust) -------------------------------------------%
@@ -452,8 +456,8 @@ if (DD == 0)
 end
 
 if (DD == 1)
-    d_0 = 1*d0*exp(-Sg*(t-T/2)^2);
-    d_1 = 0*d0*exp(-Sg*(t-T/2)^2);
+    d_0 = 0*d0*exp(-Sg*(t-T/2)^2);
+    d_1 = 1*d0*exp(-Sg*(t-T/2)^2);
     d_2 = 0*d0*exp(-Sg*(t-T/2)^2);
     d_3 = 0*d0*exp(-Sg*(t-T/2)^2);
 end
@@ -483,14 +487,14 @@ end
 % --- Final control signals:
 %F = kg*tanh((U_0 + d_0)/kg);
 
+% With saturation
 % F = FF(1) + d_0;
-% % fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
 % T_1 = FF(2) + d_1;
 % T_2 = FF(3) + d_2;
 % T_3 = FF(4) + d_3;
-% 
+
+% Without saturation
 F = U_0 + d_0;
-% fprintf('Sila %f  F_z %f  poremecaj %f \n', F, FF(1), d_0);
 T_1 = U_1 + d_1;
 T_2 = U_2 + d_2;
 T_3 = U_3 + d_3;
@@ -664,10 +668,15 @@ dy(28) = de_z;
 dy(63) = de_y;
 dy(64) = de_x;
 
-dy(29) = Omega(1);
-dy(30) = Omega(2);
-dy(31) = Omega(3);
-dy(32) = Omega(4);
+dy(29) = Omega_orig(1);
+dy(30) = Omega_orig(2);
+dy(31) = Omega_orig(3);
+dy(32) = Omega_orig(4);
+
+dy(65) = Omega(1);
+dy(66) = Omega(2);
+dy(67) = Omega(3);
+dy(68) = Omega(4);
 
 dy(39) = ddz_d;
 dy(40) = ddy_d;
@@ -682,14 +691,10 @@ dy(46) = d4y_d;
 dy(47) = d4x_d;
 
 if (YY == 7)
-%     dy(48) = -Uz*sign(s0);
-%     dy(49) = -Uy*sign(s1);
-%     dy(50) = -Ux*sign(s2);
-%     dy(51) = -Upsi*sign(s3);
-    dy(48) = -b0*sign(s0);
-    dy(49) = -b1*sign(s1);
-    dy(50) = -b2*sign(s2);
-    dy(51) = -b3*sign(s3);
+    dy(48) = -Uz*sign(s0);
+    dy(49) = -Uy*sign(s1);
+    dy(50) = -Ux*sign(s2);
+    dy(51) = -Upsi*sign(s3);
 end
 
 dy(52) = dx_df;
