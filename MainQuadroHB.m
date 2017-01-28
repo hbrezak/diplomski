@@ -1,7 +1,8 @@
 % Quadrotor stabilization algorithms comparison
 clear all; clc;
 
-global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
+global N T QQ YY DD RR SF EE 
+global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
 
@@ -48,6 +49,21 @@ RR = 2; % Spiral trajectory
 %=========================================================================%
 
 
+% === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
+% SF = 0; % Z reference w/o smoothing filter
+% SF = 1; % Z reference w/ smoothing filter 1st order
+SF = 2; % Z reference w/ smoothing filter 2nd order
+% SF = 3; % Z reference w/ nonlinear saturated smoothing filter
+%=========================================================================%
+
+
+% === CHOOSE ERROR DERIVATIVE ESTIMATOR ==================================%
+EE = 0; % w/o estimator
+% EE = 1; % linear estimator
+% EE = 2; % super-twisting estimator
+%=========================================================================%
+
+
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
 DD = 0; % without disturbance
@@ -60,14 +76,6 @@ DD = 0; % without disturbance
 d0=1; Sg=5; % short duration, small amplitude
 % d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 46 km/h
 % d0=2; Sg=0.3; % estimate of wind gust 60 km/h, duration 5 sec (if m = 0.6)
-%=========================================================================%
-
-
-% === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-% SF = 0; % Z reference w/o smoothing filter
-% SF = 1; % Z reference w/ smoothing filter 1st order
-SF = 2; % Z reference w/ smoothing filter 2nd order
-% SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
 
@@ -121,7 +129,7 @@ E_B = [b b b b; l*b -l*b -l*b l*b; -l*b l*b -l*b l*b; d d -d -d];
  inv_E_B = inv(E_B);
 %=========================================================================%
 
-output(T, QQ, YY, WW, RR, DD, SF); % output selected parameters
+output(T, QQ, YY, WW, RR, DD, SF, EE); % output selected parameters
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)

@@ -1,4 +1,4 @@
-function output(T, QQ, YY, WW, RR, DD, SF)
+function output(T, QQ, YY, WW, RR, DD, SF, EE)
 
 switch YY
     case 1
@@ -50,15 +50,26 @@ end
 
 switch SF
     case 0
-        Zsmoothing = 'Z reference w/o smoothing filter';
+        smoothing = 'Z reference w/o smoothing filter';
     case 1
-        Zsmoothing = 'Z reference w/ smoothing filter 1st order';
+        smoothing = 'Z reference w/ smoothing filter 1st order';
     case 2
-        Zsmoothing = 'Z reference w/ smoothing filter 2nd order';
+        smoothing = 'Z reference w/ smoothing filter 2nd order';
     case 3
-        Zsmoothing = 'Z reference w/ nonlinear saturated smoothing filter';
+        smoothing = 'Z reference w/ nonlinear saturated smoothing filter';
     otherwise
-        Zsmoothing = 'Invalid smoothing filter selection';
+        smoothing = 'Invalid smoothing filter selection';
+end
+
+switch EE
+    case 0
+        estimator = 'No error derivative estimator used';
+    case 1
+        estimator = 'Linear error derivative estimator';
+    case 2
+        estimator = 'Super-twisting error derivative estimator';
+    otherwise
+        estimator = 'Invalid error derivative estimator selection';
 end
 
 
@@ -69,7 +80,8 @@ fprintf('Selected controller:  YY = %d - %s \n', YY, controller);
 fprintf('Selected solver:      WW = %d - %s \n', WW, solver);
 fprintf('Selected reference:   RR = %d - %s \n', RR, reference);
 fprintf('Selected disturbance: DD = %d - %s \n', DD, disturbance);
-fprintf('Selected smoothing:   SF = %d - %s \n', SF, Zsmoothing);
+fprintf('Selected smoothing:   SF = %d - %s \n', SF, smoothing);
+fprintf('Selected estimator:   EE = %d - %s \n', EE, estimator);
 fprintf('\nRunning...\n');
 
 end

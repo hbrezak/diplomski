@@ -1,6 +1,7 @@
 function dy = QuadroHB(t,y)
 
-global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
+global N T QQ YY DD RR SF EE 
+global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
 
@@ -137,6 +138,28 @@ e_y = Y-y_df; de_y = dY-dy_df;
 e_z = Z-z_df; de_z = dZ-dz_df;
 %-------------------------------------------------------------------------%
 
+
+% --- Error derivative estimator -----------------------------------------%
+if (EE == 0)
+    de_x_est = de_x;
+    de_y_est = de_y;
+    de_z_est = de_z;
+end
+
+if (EE == 1)
+    de_x_est = -Ke_lin*(y(60) - e_x);
+    de_y_est = -Ke_lin*(y(59) - e_y);
+    de_z_est = -Ke_lin*(y(17) - e_z);
+end
+
+if (EE == 2)
+    de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62);
+    de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61);
+    de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
+end
+%-------------------------------------------------------------------------%
+
+
 % --- Quadrotor parameters(nominal) --------------------------------------%
 % Parametri: m, Ix, Iy, Iz su pretpostavljene vrijednosti realnih
 % parametara mm, Ixx, Iyy, Izz koje koristimo u kontroleru (robusnost)
@@ -148,10 +171,6 @@ Iz = 1.0*Izz;
 
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
-
-% de_z_est = de_z;
-de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = m*(grav + k_D*dZ + k_P*e_z); % z velocity is measured (dZ known)
 % U_0 = m*(grav + k_D*de_z_est + k_P*e_z); % velocity is not measured, derivatives are estimated
@@ -166,9 +185,6 @@ end
 if (YY == 2)
 % --- PID controller -----------------------------------------------------%
 
-de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
-% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
-
 % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
 % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
 U_0 = max((m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20)), 0); % limit to positive numbers only
@@ -181,11 +197,6 @@ end
 
 if (YY == 3)
 % --- Trajectory tracking control law ------------------------------------%
-
-de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
-de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
-% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
 % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
@@ -205,9 +216,6 @@ end
 
 if (YY == 4)
 % --- Sliding mode 1st order (sign) --------------------------------------%
-
-de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
 
 p = 1; eps = 0.01;
 U = 20; % 4 values tested: 20, 50, 100, 150
@@ -237,10 +245,6 @@ end
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
 
-% de_z_est = de_z; % use measured velocity
-% de_z_est = -Ke_lin*(y(17) - e_z); % 1st order filter error derivative estimation
-de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
-
 p = 3; U = 20; % 20, 50, 80, 100
 
 s = de_z_est + p*e_z;
@@ -269,19 +273,6 @@ end
 
 if (YY == 6)
 % --- 1-SM Trajectory tracking control law ------------------------------------%
-
-de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
-de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
-
-
-% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
-% de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
-% de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
-
-% de_z_est = de_z;
-% de_y_est = de_y;
-% de_x_est = de_x;
 
 dde_x = -Theta*grav - ddx_d;
 d3e_x = -dTheta*grav - d3x_d;
@@ -350,19 +341,6 @@ end
 if (YY == 7)
 % --- Super-twisting Trajectory tracking control law ------------------------------------%
 
-de_z_est = -Ke_lin*(y(17) - e_z); % error derivative estimation
-de_y_est = -Ke_lin*(y(59) - e_y); % error derivative estimation
-de_x_est = -Ke_lin*(y(60) - e_x); % error derivative estimation
-
-
-% de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26); %super-twisting derivative estimator
-% de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61); %super-twisting derivative estimator
-% de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62); %super-twisting derivative estimator
-
-% de_z_est = de_z;
-% de_y_est = de_y;
-% de_x_est = de_x;
-
 dde_x = -Theta*grav - ddx_d;
 d3e_x = -dTheta*grav - d3x_d;
 
@@ -420,8 +398,6 @@ U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) - 
 U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
 %-------------------------------------------------------------------------%
 end
-
-
 
 % --- Actuator saturation ------------------------------------------------%
 Omega_orig = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
