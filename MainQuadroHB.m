@@ -52,8 +52,8 @@ RR = 2; % Spiral trajectory
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
 % SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
-SF = 2; % Z reference w/ smoothing filter 2nd order
-% SF = 3; % Z reference w/ nonlinear saturated smoothing filter
+% SF = 2; % Z reference w/ smoothing filter 2nd order
+SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
 
