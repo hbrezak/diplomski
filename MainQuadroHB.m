@@ -1,7 +1,7 @@
 % Quadrotor stabilization algorithms comparison
 clear all; clc;
 
-global N T QQ YY DD RR SF EE 
+global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
@@ -32,7 +32,7 @@ QQ = 4; % MODEL 4 - linear quadrotor model
 % YY = 4; % Sliding mode 1st order (sign)
 % YY = 5; % Super-twisting (2nd order sliding mode) algorithm
 % YY = 6; % 1-SM trajectory tracking control law
-YY = 7;
+YY = 7; % Super-twisting trajectory tracking control law
 %=========================================================================%
 
 
@@ -70,7 +70,7 @@ DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
-% DD = 4;
+% DD = 4; % rapid alternating wave disturbance
 
 % --- Shape:
 d0=1; Sg=5; % short duration, small amplitude
@@ -117,6 +117,14 @@ mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309;
 Ixy = 0; Iyz = 0; Ixz = 0;
 I_B = [Ixx -Ixy -Ixz; -Ixy Iyy -Iyz; -Ixz -Iyz Izz];
 l = 0.125; % 250 class quadrotor frame
+%=========================================================================%
+
+
+% === CHOOSE MOTOR SATURATION ============================================%
+% SAT = true;
+SAT = false;
+%=========================================================================%
+
 
 % === MOTOR PARAMETERS ===================================================%
 % Calculated from experimental values for EMAX RS2205@12V w/ HQ5045 BN prop
@@ -129,7 +137,8 @@ E_B = [b b b b; l*b -l*b -l*b l*b; -l*b l*b -l*b l*b; d d -d -d];
  inv_E_B = inv(E_B);
 %=========================================================================%
 
-output(T, QQ, YY, WW, RR, DD, SF, EE); % output selected parameters
+
+output(T, QQ, YY, WW, RR, DD, SF, EE, SAT); % output selected parameters
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
@@ -188,8 +197,10 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 %-------------------------------------------------------------------------%
 end
 
-fprintf('Done! \n');
+fprintf('done! \n');
+fprintf('Generating plots... ');
 close all;
+
 
 % === PLOTS ==============================================================%
 set(0, 'DefaultFigurePosition', [1367 -281 1920 973]); % set all plots position to center of secondary monitor at home
@@ -440,5 +451,5 @@ subplot(2,2,3), plot(td, Omega3, 'b-', 'LineWidth', 4), ylabel('Saturated angula
 legend('Actuator 3');
 subplot(2,2,4), plot(td, Omega4, 'b-', 'LineWidth', 4), ylabel('Saturated angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 legend('Actuator 4');
-
+fprintf('done!\n');
 %=========================================================================%

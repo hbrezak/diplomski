@@ -1,4 +1,4 @@
-function output(T, QQ, YY, WW, RR, DD, SF, EE)
+function output(T, QQ, YY, WW, RR, DD, SF, EE, SAT)
 
 switch YY
     case 1
@@ -11,6 +11,10 @@ switch YY
         controller = 'Sliding mode 1st order (sign)';
     case 5
         controller = 'Super-twisting (2nd order sliding mode) algorithm';
+    case 6
+        controller = '1-SM trajectory tracking control law';
+    case 7
+        controller = 'Super-twisting trajectory tracking control law';
     otherwise
         controller = 'Invalid controller selection';
 end
@@ -37,13 +41,15 @@ end
 
 switch DD
     case 0
-        disturbance = 'without disturbance';
+        disturbance = 'Without disturbance';
     case 1
-        disturbance = 'single wind gust at T/2';
+        disturbance = 'Single wind gust at T/2';
     case 2
-        disturbance = 'four wind gusts (i) at 5+i*T/4, same direction';
+        disturbance = 'Four wind gusts (i) at 5+i*T/4, same direction';
     case 3
-        disturbance = 'four wind gusts (i) at 5+i*T/4, alternating direction';
+        disturbance = 'Four wind gusts (i) at 5+i*T/4, alternating direction';
+    case 4
+        disturbance = 'Rapid alternating wave disturbance';
     otherwise
         disturbance = 'Invalid reference selection';
 end
@@ -72,6 +78,15 @@ switch EE
         estimator = 'Invalid error derivative estimator selection';
 end
 
+switch SAT
+    case true
+        saturation = 'Motor saturation enabled';
+    case false
+        saturation = 'Motor saturation disabled';
+    otherwise
+        saturation = 'Error! Check settings';
+end
+
 
 fprintf('QUADROTOR HELICOPTER MODEL SIMULATION \n');
 fprintf('Simulation runtime: %d sec.\n', T);
@@ -79,10 +94,11 @@ fprintf('Running MODEL %d \n', QQ);
 fprintf('Selected controller:  YY = %d - %s \n', YY, controller);
 fprintf('Selected solver:      WW = %d - %s \n', WW, solver);
 fprintf('Selected reference:   RR = %d - %s \n', RR, reference);
-fprintf('Selected disturbance: DD = %d - %s \n', DD, disturbance);
 fprintf('Selected smoothing:   SF = %d - %s \n', SF, smoothing);
 fprintf('Selected estimator:   EE = %d - %s \n', EE, estimator);
-fprintf('\nRunning...\n');
+fprintf('Selected disturbance: DD = %d - %s \n', DD, disturbance);
+fprintf('Selected saturation: SAT = %d - %s \n', SAT, saturation);
+fprintf('\nRunning calculations... ');
 
 end
 

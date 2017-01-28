@@ -1,6 +1,6 @@
 function dy = QuadroHB(t,y)
 
-global N T QQ YY DD RR SF EE 
+global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
@@ -467,21 +467,22 @@ if (DD == 4)
 end
 %-------------------------------------------------------------------------%   
 
-% --- Final control signals:
+
+% --- Motor saturation ---------------------------------------------------% 
 %F = kg*tanh((U_0 + d_0)/kg);
 
-% With saturation
-% F = FF(1) + d_0;
-% T_1 = FF(2) + d_1;
-% T_2 = FF(3) + d_2;
-% T_3 = FF(4) + d_3;
-
-% Without saturation
-F = U_0 + d_0;
-T_1 = U_1 + d_1;
-T_2 = U_2 + d_2;
-T_3 = U_3 + d_3;
-
+if (SAT) % With saturation
+    F = FF(1) + d_0;
+    T_1 = FF(2) + d_1;
+    T_2 = FF(3) + d_2;
+    T_3 = FF(4) + d_3;
+else % Without saturation    
+    F = U_0 + d_0;
+    T_1 = U_1 + d_1;
+    T_2 = U_2 + d_2;
+    T_3 = U_3 + d_3;
+end
+%-------------------------------------------------------------------------% 
 
 if (QQ == 1)
 % --- MODEL 1 ------------------------------------------------------------%
