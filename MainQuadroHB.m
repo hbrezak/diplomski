@@ -54,11 +54,11 @@ DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
 % DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
-%DD = 4;
+% DD = 4;
 
 % --- Shape:
 d0=1; Sg=5; % short duration, small amplitude
-%d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 46 km/h
+% d0=4; Sg=0.1; % long duration, large amplitude; simulates wind gusts of approx. 46 km/h
 % d0=2; Sg=0.3; % estimate of wind gust 60 km/h, duration 5 sec (if m = 0.6)
 %=========================================================================%
 
@@ -227,25 +227,28 @@ d_mx = 1.5 + 2.5*sin(4*t);
 d_my = 2.5 + 1.5*sin(3*t);
 end
 %-------------------------------------------------------------------------%
-x_df = y(:, 36);
-y_df = y(:, 35);
-z_df = y(:, 19);
+% Transfer actual references used in model 
+x_df = diff(y(:, 52))./diff(t);
+y_df = diff(y(:, 53))./diff(t);
+z_df = diff(y(:, 54))./diff(t);
+td=t(1:(length(t)-1));
+
 if (QQ == 1)
 % --- MODEL 1 ------------------------------------------------------------%
 %Trajectories
 figure(1)
-subplot(2,3,1), plot(t,y(:,1),'b', t, x_df,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,2), plot(t,y(:,2),'b', t, y_df,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,3), plot(t,y(:,3),'b', t, z_df,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 10 0 1.2])
+subplot(2,3,1), plot(t,y(:,1),'b', td, x_df,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), plot(t,y(:,2),'b', td, y_df,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), plot(t,y(:,3),'b', td, z_df,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 10 0 1.2])
 subplot(2,3,4), plot(t,y(:,4),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,5), plot(t,y(:,5),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,6), plot(t,y(:,6),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Errors
 figure(2)
-subplot(2,3,1), semilogy(t,abs(y(:,1)-x_df), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,2), semilogy(t,abs(y(:,2)-y_df), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,3), semilogy(t,abs(y(:,3)-z_df), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), semilogy(td,abs(y(1:(end-1),1)-x_df), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), semilogy(td,abs(y(1:(end-1),2)-y_df), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), semilogy(td,abs(y(1:(end-1),3)-z_df), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Thrust force and torques
 F=diff(y(:,13))./diff(t);
@@ -286,23 +289,20 @@ axis square
 
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
 % --- MODEL 2 - MODEL 3 - MODEL 4 ----------------------------------------%
-
-
-
 % Trajectories
 figure(1)
-subplot(2,3,1), plot(t,y(:,1),'b', t, x_df,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,2), plot(t,y(:,3),'b', t, y_df,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,3), plot(t,y(:,5),'b', t, z_df,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), plot(t,y(:,1),'b', td, x_df,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), plot(t,y(:,3),'b', td, y_df,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), plot(t,y(:,5),'b', td, z_df,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,4), plot(t,y(:,7),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,5), plot(t,y(:,9),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Errors
 figure(2)
-subplot(2,3,1), semilogy(t,abs(y(:,1)-x_df), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,2), semilogy(t,abs(y(:,3)-y_df), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-subplot(2,3,3), semilogy(t,abs(y(:,5)-z_df), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,1), semilogy(td,abs(y(1:(end-1),1)-x_df), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,2), semilogy(td,abs(y(1:(end-1),3)-y_df), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+subplot(2,3,3), semilogy(td,abs(y(1:(end-1),5)-z_df), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
 
 % Thrust force and torques
 F=diff(y(:,13))./diff(t);

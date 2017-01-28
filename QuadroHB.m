@@ -53,16 +53,18 @@ if (RR == 1)
     z_d = z_d * stepAmp;
     dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;     
 end
+
 if (RR == 2)
     x_d = -Ay0*0 + Ay0*cos(Vx0*t);
     y_d = Ay0*sin(Vx0*t);
     z_d = Vx0*t;    
     
-%     dx_d = -Ay0*Vx0*sin(Vx0*t); ddx_d = -Ay0*Vx0^2*cos(Vx0*t); d3x_d = Ay0*Vx0^3*sin(Vx0*t); d4x_d = Ay0*Vx0^4*cos(Vx0*t);
-%     dy_d = Ay0*Vx0*cos(Vx0*t); ddy_d = -Ay0*Vx0^2*sin(Vx0*t); d3y_d = -Ay0*Vx0^3*cos(Vx0*t); d4y_d = Ay0*Vx0^4*sin(Vx0*t);
-%     dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
+    dx_d = -Ay0*Vx0*sin(Vx0*t); ddx_d = -Ay0*Vx0^2*cos(Vx0*t); d3x_d = Ay0*Vx0^3*sin(Vx0*t); d4x_d = Ay0*Vx0^4*cos(Vx0*t);
+    dy_d = Ay0*Vx0*cos(Vx0*t); ddy_d = -Ay0*Vx0^2*sin(Vx0*t); d3y_d = -Ay0*Vx0^3*cos(Vx0*t); d4y_d = Ay0*Vx0^4*sin(Vx0*t);
+    dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
 
 end
+
 if (RR == 3)
     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
     y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
@@ -676,9 +678,10 @@ if (YY == 7)
     dy(51) = -Upsi*sign(s3);
 end
 
-dy(52) = dx_df;
-dy(53) = dy_df;
-dy(54) = dz_df;
+dy(52) = x_df;
+dy(53) = y_df;
+dy(54) = z_df;
+
 
 
 end % function QuadroHB
