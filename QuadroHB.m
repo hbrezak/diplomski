@@ -1,7 +1,7 @@
 function dy = QuadroHB(t,y)
 
 global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
 
 dy = zeros(N, 1);
@@ -412,25 +412,10 @@ ST_2 = -Ux*sqrt(abs(s2))*sign(s2) + y(50);
 ST_PSI = -Upsi*sqrt(abs(s3))*sign(s3) + y(51);
 
 % Control laws
-u0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - ST_0), 0);
-u1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + ST_1;
-u2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) - ST_2;
-u3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
-
-dy(55) = -rho*tanh(u*(y(55) - u0));
-dy(56) = -rho*tanh(u*(y(56) - u1));
-dy(57) = -rho*tanh(u*(y(57) - u2));
-dy(58) = -rho*tanh(u*(y(58) - u3));
-
-% U_0 = y(55);
-% U_1 = y(56);
-% U_2 = y(57);
-% U_3 = y(58);
-
-U_0 = u0;
-U_1 = u1;
-U_2 = u2;
-U_3 = u3;
+U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - ST_0), 0);
+U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + ST_1;
+U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) - ST_2;
+U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
 %-------------------------------------------------------------------------%
 end
 
@@ -637,12 +622,6 @@ if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
     dy(37) = dy_df;
     dy(38) = dx_df;
 end
-
-
-
-
-
-
 
 % PID integral part
 dy(20) = e_z;

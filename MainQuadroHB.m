@@ -2,7 +2,7 @@
 clear all; clc;
 
 global N T QQ YY DD RR SF grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 x_d y_d z_d Ke_lin Ke_st Ksf rho u kg 
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg 
 global E_B inv_E_B AngVel_limit
 
 T = 40; % Simulation time
@@ -17,21 +17,21 @@ u = 5; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-% QQ = 4; % MODEL 4 - linear quadrotor model
+QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
-YY = 3; % Trajectory tracking control law - Z axis PID controller
+% YY = 3; % Trajectory tracking control law - Z axis PID controller
 % YY = 4; % Sliding mode 1st order (sign)
 % YY = 5; % Super-twisting (2nd order sliding mode) algorithm
 % YY = 6; % 1-SM trajectory tracking control law
-% YY = 7;
+YY = 7;
 %=========================================================================%
 
 
@@ -50,10 +50,10 @@ RR = 2; % Spiral trajectory
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-% DD = 0; % without disturbance
+DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
-DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
+% DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 %DD = 4;
 
 % --- Shape:
