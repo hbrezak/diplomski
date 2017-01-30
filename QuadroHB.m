@@ -89,65 +89,66 @@ if (SF == 0) % Z reference w/o smoothing filter
 end
 if (SF == 1)||(SF == 2)
     % First derivative of ref. = dy(18) / 1st order smoothed ref. = y(18)
-    dz_df = -Ksf*(y(18) - z_d);
-    dy_df = -Ksf*(y(33) - y_d);
-    dx_df = -Ksf*(y(34) - x_d);
+    dz_df = -Ksf*(y(25) - z_d);
+    dy_df = -Ksf*(y(26) - y_d);
+    dx_df = -Ksf*(y(27) - x_d);
     
     % Second derivative of ref. = dy(19) / 2nd order smoothed ref. = y(19)
-    ddz_df = -Ksf*(y(19) - y(18));    
-    ddy_df = -Ksf*(y(35) - y(33));    
-    ddx_df = -Ksf*(y(36) - y(34));
+    ddz_df = -Ksf*(y(28) - y(25));    
+    ddy_df = -Ksf*(y(29) - y(26));    
+    ddx_df = -Ksf*(y(30) - y(27));
     
-    d3z_d = -Ksf*(y(39) - y(19));
-    d3y_d = -Ksf*(y(40) - y(35));
-    d3x_d = -Ksf*(y(41) - y(36));
+    d3z_d = -Ksf*(y(31) - y(28));
+    d3y_d = -Ksf*(y(32) - y(29));
+    d3x_d = -Ksf*(y(33) - y(30));
     
-    d4z_d = -Ksf*(y(42) - y(39));
-    d4y_d = -Ksf*(y(43) - y(40));
-    d4x_d = -Ksf*(y(44) - y(41));
+    d4z_d = -Ksf*(y(34) - y(31));
+    d4y_d = -Ksf*(y(35) - y(32));
+    d4x_d = -Ksf*(y(36) - y(33));
     
     if (SF == 1)
-        x_ref = y(34);
-        y_ref = y(33);
-        z_ref = y(18);
-        dx_ref = dx_df;
-        dy_ref = dy_df;
+        
+        z_ref = y(25);
+        y_ref = y(26);
+        x_ref = y(27);
         dz_ref = dz_df;
+        dy_ref = dy_df;
+        dx_ref = dx_df;
     end
     
-    if (SF == 2)
-        x_ref = y(36);
-        y_ref = y(35);
-        z_ref = y(19);
-        dx_ref = ddx_df;
-        dy_ref = ddy_df;
+    if (SF == 2)        
+        z_ref = y(28);
+        y_ref = y(29);
+        x_ref = y(30);
         dz_ref = ddz_df;
+        dy_ref = ddy_df;
+        dx_ref = ddx_df;
     end
 end
 
 if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
-    dz_df = -rho*tanh(u*(y(18) - z_d));
-    dy_df = -rho*tanh(u*(y(33) - y_d));
-    dx_df = -rho*tanh(u*(y(34) - x_d));
+    dz_df = -rho*tanh(u*(y(25) - z_d));
+    dy_df = -rho*tanh(u*(y(26) - y_d));
+    dx_df = -rho*tanh(u*(y(27) - x_d));
     
-    ddz_df = -rho*tanh(u*(y(19) - y(18)));    
-    ddy_df = -rho*tanh(u*(y(35) - y(33)));    
-    ddx_df = -rho*tanh(u*(y(36) - y(34)));
+    ddz_df = -rho*tanh(u*(y(28) - y(25)));    
+    ddy_df = -rho*tanh(u*(y(29) - y(26)));    
+    ddx_df = -rho*tanh(u*(y(30) - y(27)));
     
-    d3z_d = -rho*tanh(u*(y(39) - y(19)));
-    d3y_d = -rho*tanh(u*(y(40) - y(35)));
-    d3x_d = -rho*tanh(u*(y(41) - y(36)));
+    d3z_d = -rho*tanh(u*(y(31) - y(28)));
+    d3y_d = -rho*tanh(u*(y(32) - y(29)));
+    d3x_d = -rho*tanh(u*(y(33) - y(30)));
     
-    d4z_d = -rho*tanh(u*(y(42) - y(39)));
-    d4y_d = -rho*tanh(u*(y(43) - y(40)));
-    d4x_d = -rho*tanh(u*(y(44) - y(41)));
-    
-    x_ref = y(34);
-    y_ref = y(33);
-    z_ref = y(18);
-    dx_ref = dx_df;
-    dy_ref = dy_df;
+    d4z_d = -rho*tanh(u*(y(34) - y(31)));
+    d4y_d = -rho*tanh(u*(y(35) - y(32)));
+    d4x_d = -rho*tanh(u*(y(36) - y(33)));
+        
+    z_ref = y(25);
+    y_ref = y(26);
+    x_ref = y(27);
     dz_ref = dz_df;
+    dy_ref = dy_df;
+    dx_ref = dx_df;    
 end
 %-------------------------------------------------------------------------%
 
@@ -161,21 +162,21 @@ e_z = Z-z_ref; de_z = dZ-dz_ref;
 
 % --- Error derivative estimator -----------------------------------------%
 if (EE == 0)
-    de_x_est = de_x;
-    de_y_est = de_y;
     de_z_est = de_z;
+    de_y_est = de_y;
+    de_x_est = de_x;
 end
 
-if (EE == 1)
-    de_x_est = -Ke_lin*(y(60) - e_x);
-    de_y_est = -Ke_lin*(y(59) - e_y);
-    de_z_est = -Ke_lin*(y(17) - e_z);
+if (EE == 1)    
+    de_z_est = -Ke_lin*(y(37) - e_z);
+    de_y_est = -Ke_lin*(y(38) - e_y);
+    de_x_est = -Ke_lin*(y(39) - e_x);
 end
 
 if (EE == 2)
-    de_x_est = -Ke_st*sqrt(abs(y(60)-e_x))*sign(y(60)-e_x) + y(62);
-    de_y_est = -Ke_st*sqrt(abs(y(59)-e_y))*sign(y(59)-e_y) + y(61);
-    de_z_est = -Ke_st*sqrt(abs(y(17)-e_z))*sign(y(17)-e_z) + y(26);
+    de_z_est = -Ke_st*sqrt(abs(y(37)-e_z))*sign(y(37)-e_z) + y(40);
+    de_y_est = -Ke_st*sqrt(abs(y(38)-e_y))*sign(y(38)-e_y) + y(41);
+    de_x_est = -Ke_st*sqrt(abs(y(39)-e_x))*sign(y(39)-e_x) + y(42);
 end
 %-------------------------------------------------------------------------%
 
@@ -188,6 +189,8 @@ Ix = 1.0*Ixx;
 Iy = 1.0*Iyy; 
 Iz = 1.0*Izz; 
 %-------------------------------------------------------------------------%
+
+s0 = 0; s1 = 0; s2 = 0; s3 = 0;
 
 if (YY == 1)
 % --- PD controller ------------------------------------------------------%
@@ -205,22 +208,22 @@ end
 if (YY == 2)
 % --- PID controller -----------------------------------------------------%
 
-% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
-% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
-U_0 = max((m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20)), 0); % limit to positive numbers only
+% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
+% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
+U_0 = max((m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17)), 0); % limit to positive numbers only
 
-U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
-U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
-U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
+U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
+U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
+U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
 %-------------------------------------------------------------------------%
 end
 
 if (YY == 3)
 % --- Trajectory tracking control law ------------------------------------%
 
-% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control
-% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(20); % PID control w/ gravity compensation
-U_0 = max(-m*(-grav + ddz_d -kk_D*de_z_est - kk_P*e_z - kk_I*y(20)), 0); % limit to positive numbers only
+% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
+% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
+U_0 = max(-m*(-grav + ddz_d -kk_D*de_z_est - kk_P*e_z - kk_I*y(17)), 0); % limit to positive numbers only
 
 dde_x = (-grav/m)*Theta - ddx_d;
 d3e_x = (-grav/m)*dTheta - d3x_d;
@@ -230,7 +233,7 @@ d3e_y = (grav/m)*dPhi - d3y_d;
 
 U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y_est - k_0*e_y);
 U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x_est - k_0*e_x);
-U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(23));
+U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(20));
 %-------------------------------------------------------------------------%
 end
 
@@ -238,56 +241,56 @@ if (YY == 4)
 % --- Sliding mode 1st order (sign) --------------------------------------%
 
 p = 1; eps = 0.01;
-U = 20; % 4 values tested: 20, 50, 100, 150
-% s = de_z + p*e_z;
-s = de_z_est + p*e_z;
+Uz = 20; % 4 values tested: 20, 50, 100, 150
+% s0 = de_z + p*e_z;
+s0 = de_z_est + p*e_z;
 
-% U_0 = U*sign(s);
-% U_0 = m*U*sign(s);
-% U_0 = m*(grav + U*sign(s));
-% U_0 = m*(grav + U*s - U*sign(s));
+% U_0 = Uz*sign(s0);
+% U_0 = m*Uz*sign(s0);
+% U_0 = m*(grav + Uz*sign(s0));
+% U_0 = m*(grav + Uz*s0 - Uz*sign(s0));
 
-% U_0 = m*(grav + U*s + U*( s / (abs(s) + eps) ) );
+% U_0 = m*(grav + Uz*s0 + Uz*( s0 / (abs(s0) + eps) ) );
 
-U_0 = max(m*(grav + U*s + U*sign(s)), 0); % limit to positive numbers only
+U_0 = max(m*(grav + Uz*s0 + Uz*sign(s0)), 0); % limit to positive numbers only
 
-% s = de_z_est + (k_P/k_D)*e_z;
-% U_0 = m*(grav + k_D*s + k_D*sign(s));
-% U_0 = m*(grav + k_D*s + k_D*( s / (abs(s) + eps) ) );
-% U_0 = max((m*(grav + k_D*s + k_D*( s / (abs(s) + eps) ) )), 0); % limit to positive numbers only
+% s0 = de_z_est + (k_P/k_D)*e_z;
+% U_0 = m*(grav + k_D*s0 + k_D*sign(s0));
+% U_0 = m*(grav + k_D*s0 + k_D*( s0 / (abs(s0) + eps) ) );
+% U_0 = max((m*(grav + k_D*s0 + k_D*( s0 / (abs(s0) + eps) ) )), 0); % limit to positive numbers only
 
-U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
-U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
-U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
+U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
+U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
+U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
 %-------------------------------------------------------------------------%
 end
 
 if (YY == 5)
 % --- Super-twisting --------------------------------------%
 
-p = 3; U = 20; % 20, 50, 80, 100
+p = 3; Uz = 20; % 20, 50, 80, 100
 
-s = de_z_est + p*e_z;
-% s = de_z_est + (k_P/k_D)*e_z;
+s0 = de_z_est + p*e_z;
+% s0 = de_z_est + (k_P/k_D)*e_z;
 
-ST = -U*sqrt(abs(s))*sign(s) + y(25);
-% ST = -sqrt(U)*sqrt(abs(s))*sign(s) + y(25); % sa U=100 i vise daje ok rez ali Fz je kratko negativan
+ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(21);
+% ST_0 = -sqrt(Uz)*sqrt(abs(s0))*sign(s0) + y(21); % sa U=100 i vise daje ok rez ali Fz je kratko negativan
 
 
-% U_0 = ST; % add pure super-twisting
-% U_0 = m*ST;
-% U_0 = m*(grav + ST);
-% U_0 = m*(grav - U*s + ST);
-% U_0 = m*(grav - k_D*s) + ST;
+% U_0 = ST_0; % add pure super-twisting
+% U_0 = m*ST_0;
+% U_0 = m*(grav + ST_0);
+% U_0 = m*(grav - Uz*s0 + ST_0);
+% U_0 = m*(grav - k_D*s0) + ST_0;
 
 %k_m = 4;
-%U_0 = m*grav + k_m*tanh( -(m/k_m)*U*s + (1/k_m)*ST);
+%U_0 = m*grav + k_m*tanh( -(m/k_m)*Uz*s0 + (1/k_m)*ST_0);
 
-U_0 = max((m*grav + m*U*s - ST), 0); % limit to positive numbers only
+U_0 = max((m*grav + m*Uz*s0 - ST_0), 0); % limit to positive numbers only
 
-U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(21);
-U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(22);
-U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(23);
+U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
+U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
+U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
 %-------------------------------------------------------------------------%
 end
 
@@ -406,10 +409,10 @@ s3 = dPsi + alpha_psi0*Psi;
 k_psi1 = alpha_psi0 + lambdaz;
 k_psi0 = alpha_psi0 * lambdaz;
 
-ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(48);
-ST_1 = -Uy*sqrt(abs(s1))*sign(s1) + y(49);
-ST_2 = -Ux*sqrt(abs(s2))*sign(s2) + y(50);
-ST_PSI = -Upsi*sqrt(abs(s3))*sign(s3) + y(51);
+ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(21);
+ST_1 = -Uy*sqrt(abs(s1))*sign(s1) + y(22);
+ST_2 = -Ux*sqrt(abs(s2))*sign(s2) + y(23);
+ST_PSI = -Upsi*sqrt(abs(s3))*sign(s3) + y(24);
 
 % Control laws
 U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - ST_0), 0);
@@ -590,102 +593,68 @@ dy(14) = T_1;
 dy(15) = T_2;
 dy(16) = T_3;
 
+% PID integral part
+dy(17) = e_z;
+dy(18) = Phi;
+dy(19) = Theta;
+dy(20) = Psi;
 
-dy(17) = de_z_est; % first order differentiator (velocity estimate)
-dy(59) = de_y_est; % first order differentiator (velocity estimate)
-dy(60) = de_x_est; % first order differentiator (velocity estimate)
-
-
-%dy(18) = -Ksf*(y(18) - z_d); % 1st order z-reference smoothing filter
-%dy(19) = -Ksf*(y(19) - y(18)); % 2nd order z-reference smoothing filter
-
+if (YY == 5) % super-twisting tracking control law integral part
+    dy(21) = -Uz*sign(s0);
+elif (YY == 7)
+    dy(21) = -Uz*sign(s0);
+    dy(22) = -Uy*sign(s1);
+    dy(23) = -Ux*sign(s2);
+    dy(24) = -Upsi*sign(s3);
+end
 
 % SMOOTHING FILTERS
 if (SF == 0) % Z reference w/o smoothing filter
 end
-if (SF == 1)||(SF == 2)
-    dy(18) = dz_df;
-    dy(33) = dy_df;
-    dy(34) = dx_df;
+if (SF == 1)||(SF == 2)||(SF == 3)
+    dy(25) = dz_df;
+    dy(26) = dy_df;
+    dy(27) = dx_df;
 
-    dy(19) = ddz_df;
-    dy(35) = ddy_df;
-    dy(36) = ddx_df;
+    dy(28) = ddz_df;
+    dy(29) = ddy_df;
+    dy(30) = ddx_df;
     
-    dy(39) = d3z_d;
-    dy(40) = d3y_d;
-    dy(41) = d3x_d;
+    dy(31) = d3z_d;
+    dy(32) = d3y_d;
+    dy(33) = d3x_d;
     
-    dy(42) = d4z_d;
-    dy(43) = d4y_d;
-    dy(44) = d4x_d;
+    dy(34) = d4z_d;
+    dy(35) = d4y_d;
+    dy(36) = d4x_d;
 end
 
-if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter  
-    dy(18) = dz_df;
-    dy(33) = dy_df;
-    dy(34) = dx_df;
-    
-    dy(19) = ddz_df;
-    dy(35) = ddy_df;
-    dy(36) = ddx_df;
-    
-    dy(39) = d3z_d;
-    dy(40) = d3y_d;
-    dy(41) = d3x_d;
-    
-    dy(42) = d4z_d;
-    dy(43) = d4y_d;
-    dy(44) = d4x_d;
-end
+% ERROR DERIVATIVE ESTIMATORS
+dy(37) = de_z_est; % first order differentiator (velocity estimate)
+dy(38) = de_y_est; % first order differentiator (velocity estimate)
+dy(39) = de_x_est; % first order differentiator (velocity estimate)
 
-% PID integral part
-dy(20) = e_z;
-dy(21) = Phi;
-dy(22) = Theta;
-dy(23) = Psi;
+dy(40) = -Ke_st*sign(y(37)-e_z); % part of super-twisting estimator
+dy(41) = -Ke_st*sign(y(38)-e_y); % part of super-twisting estimator
+dy(42) = -Ke_st*sign(y(39)-e_x); % part of super-twisting estimator
 
-if (YY == 4)||(YY == 5)
-    dy(24) = s;    % for plot
-    dy(25) = -U*sign(s); % part of super-twisting algorithm
-    % dy(25) = -1.1*U*sign(s); % part of super-twisting algorithm
-end
+% FOR PLOTS
+dy(43) = de_z;
+dy(44) = de_y;
+dy(45) = de_x;
 
-%dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
+dy(46) = Omega_orig(1);
+dy(47) = Omega_orig(2);
+dy(48) = Omega_orig(3);
+dy(49) = Omega_orig(4);
 
-dy(26) = -Ke_st*sign(y(17)-e_z); % part of super-twisting estimator
-dy(61) = -Ke_st*sign(y(59)-e_y); % part of super-twisting estimator
-dy(62) = -Ke_st*sign(y(60)-e_x); % part of super-twisting estimator
+dy(50) = Omega(1);
+dy(51) = Omega(2);
+dy(52) = Omega(3);
+dy(53) = Omega(4);
 
-%dy(27) = -rho*tanh(u*(y(27) - z_d)); %nonlinear saturated z-reference smoothing filter
-
-dy(28) = de_z;
-dy(63) = de_y;
-dy(64) = de_x;
-
-dy(29) = Omega_orig(1);
-dy(30) = Omega_orig(2);
-dy(31) = Omega_orig(3);
-dy(32) = Omega_orig(4);
-
-dy(65) = Omega(1);
-dy(66) = Omega(2);
-dy(67) = Omega(3);
-dy(68) = Omega(4);
-
-
-
-if (YY == 7)
-    dy(48) = -Uz*sign(s0);
-    dy(49) = -Uy*sign(s1);
-    dy(50) = -Ux*sign(s2);
-    dy(51) = -Upsi*sign(s3);
-end
-
-dy(52) = x_ref;
-dy(53) = y_ref;
-dy(54) = z_ref;
-
-
+dy(54) = x_ref;
+dy(55) = y_ref;
+dy(56) = z_ref;
 
 end % function QuadroHB
