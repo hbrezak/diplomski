@@ -1,4 +1,4 @@
-function output(T, QQ, YY, WW, RR, DD, SF, EE, SAT)
+function output(T, QQ, YY, WW, RR, DD, SF, EE, SAT, mm, Ixx, Iyy, Izz, b, d, l, AngVel_limit)
 
 switch YY
     case 1
@@ -88,7 +88,10 @@ switch SAT
 end
 
 
-fprintf('QUADROTOR HELICOPTER MODEL SIMULATION \n');
+fprintf('QUADROTOR HELICOPTER MODEL SIMULATION \n \n');
+fprintf('Using quadrotor data \n mm = %.2f, Ixx = %.4f, Iyy = %.4f, Izz = %.4f \n', mm, Ixx, Iyy, Izz);
+fprintf('Using motor data \n b = %.2f, d = %.4f, l = %.3f \n', b, d, l);
+fprintf('Max. motor angular velocity: %d rad/s\n\n', AngVel_limit);
 fprintf('Simulation runtime: %d sec.\n', T);
 fprintf('Running MODEL %d \n', QQ);
 fprintf('Selected controller:  YY = %d - %s \n', YY, controller);
@@ -97,7 +100,7 @@ fprintf('Selected reference:   RR = %d - %s \n', RR, reference);
 fprintf('Selected smoothing:   SF = %d - %s \n', SF, smoothing);
 fprintf('Selected estimator:   EE = %d - %s \n', EE, estimator);
 fprintf('Selected disturbance: DD = %d - %s \n', DD, disturbance);
-fprintf('Selected saturation: SAT = %d - %s \n', SAT, saturation);
+fprintf('Selected saturation:  SAT = %d - %s \n', SAT, saturation);
 fprintf('\nRunning calculations... ');
 
 end

@@ -2,68 +2,69 @@ function dy = QuadroHB(t,y)
 
 global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
-global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg 
+global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
 global E_B inv_E_B AngVel_limit
 
 dy = zeros(N, 1);
 
-if (QQ == 1)
 % --- STATE VARIABLES - MODEL 1 ------------------------------------------%
-X=y(1); dX=y(7); % #TODO: Fix MODEL 1 
-Y=y(2); dY=y(8);
-Z=y(3); dZ=y(9);
-
-Phi=y(4); dPhi=y(10);
-Theta=y(5); dTheta=y(11);
-Psi=y(6); dPsi=y(12);
-
-Position = [X; Y; Z;];
-Angle = [Phi; Theta; Psi];
-Velocity_Lin_B = y(7:9);
-Velocity_Ang_B = y(10:12);
-Velocity_B = [Velocity_Lin_B; Velocity_Ang_B];
-%-------------------------------------------------------------------------%
+if (QQ == 1)    
+    X=y(1); dX=y(7); % #TODO: Fix MODEL 1
+    Y=y(2); dY=y(8);
+    Z=y(3); dZ=y(9);
+    
+    Phi=y(4); dPhi=y(10);
+    Theta=y(5); dTheta=y(11);
+    Psi=y(6); dPsi=y(12);
+    
+    Position = [X; Y; Z;];
+    Angle = [Phi; Theta; Psi];
+    Velocity_Lin_B = y(7:9);
+    Velocity_Ang_B = y(10:12);
+    Velocity_B = [Velocity_Lin_B; Velocity_Ang_B];
 end
+%-------------------------------------------------------------------------%
 
-if (QQ == 2)||(QQ == 3)||(QQ == 4)
 % --- STATE VARIABLES - MODEL 2 - MODEL 3 - MODEL 4 ----------------------%
-X=y(1); dX=y(2);
-Y=y(3); dY=y(4);
-Z=y(5); dZ=y(6);
-
-Phi=y(7); dPhi=y(8);
-Theta=y(9); dTheta=y(10);
-Psi=y(11); dPsi=y(12);
-%-------------------------------------------------------------------------%
+if (QQ == 2)||(QQ == 3)||(QQ == 4)
+    X=y(1); dX=y(2);
+    Y=y(3); dY=y(4);
+    Z=y(5); dZ=y(6);
+    
+    Phi=y(7); dPhi=y(8);
+    Theta=y(9); dTheta=y(10);
+    Psi=y(11); dPsi=y(12);
 end
+%-------------------------------------------------------------------------%
+
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
     dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
     dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
     
-    % what ever T is, set step to start at 1 sec. and lower it to 0 at last quarter  
+    % what ever T is, set step to start at 1 sec. and lower it to 0 at last quarter
     if(t<1)
-        z_d = 0;    
-    else if (t>3*T/4)    % referentna trajektorija
         z_d = 0;
+    else if (t>3*T/4)
+            z_d = 0;
         else
             z_d = 1;
         end
     end
     z_d = z_d * stepAmp;
-    dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;     
+    dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
 end
 
 if (RR == 2)
     x_d = -Ay0*0 + Ay0*cos(Vx0*t);
     y_d = Ay0*sin(Vx0*t);
-    z_d = Vx0*t;    
+    z_d = Vx0*t;
     
     dx_d = -Ay0*Vx0*sin(Vx0*t); ddx_d = -Ay0*Vx0^2*cos(Vx0*t); d3x_d = Ay0*Vx0^3*sin(Vx0*t); d4x_d = Ay0*Vx0^4*cos(Vx0*t);
     dy_d = Ay0*Vx0*cos(Vx0*t); ddy_d = -Ay0*Vx0^2*sin(Vx0*t); d3y_d = -Ay0*Vx0^3*cos(Vx0*t); d4y_d = Ay0*Vx0^4*sin(Vx0*t);
-    dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;     
-
+    dz_d = Vx0; ddz_d = 0; d3z_d = 0; d4z_d = 0;
+    
 end
 
 if (RR == 3)
@@ -77,7 +78,7 @@ end
 %-------------------------------------------------------------------------%
 
 % --- Reference smoothing filters ----------------------------------------%
-if (SF == 0) % Z reference w/o smoothing filter
+if (SF == 0) % References w/o smoothing filter
     z_ref = z_d;
     dz_ref = dz_d;
     
@@ -94,8 +95,8 @@ if (SF == 1)||(SF == 2)
     dx_df = -Ksf*(y(27) - x_d);
     
     % Second derivative of ref. = dy(19) / 2nd order smoothed ref. = y(19)
-    ddz_df = -Ksf*(y(28) - y(25));    
-    ddy_df = -Ksf*(y(29) - y(26));    
+    ddz_df = -Ksf*(y(28) - y(25));
+    ddy_df = -Ksf*(y(29) - y(26));
     ddx_df = -Ksf*(y(30) - y(27));
     
     d3z_d = -Ksf*(y(31) - y(28));
@@ -106,8 +107,7 @@ if (SF == 1)||(SF == 2)
     d4y_d = -Ksf*(y(35) - y(32));
     d4x_d = -Ksf*(y(36) - y(33));
     
-    if (SF == 1)
-        
+    if (SF == 1) % 1st order smoothing filter used
         z_ref = y(25);
         y_ref = y(26);
         x_ref = y(27);
@@ -116,7 +116,7 @@ if (SF == 1)||(SF == 2)
         dx_ref = dx_df;
     end
     
-    if (SF == 2)        
+    if (SF == 2) % 2nd order smoothing filter used
         z_ref = y(28);
         y_ref = y(29);
         x_ref = y(30);
@@ -126,13 +126,13 @@ if (SF == 1)||(SF == 2)
     end
 end
 
-if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
+if (SF == 3) % Nonlinear saturated smoothing filter used
     dz_df = -rho*tanh(u*(y(25) - z_d));
     dy_df = -rho*tanh(u*(y(26) - y_d));
     dx_df = -rho*tanh(u*(y(27) - x_d));
     
-    ddz_df = -rho*tanh(u*(y(28) - y(25)));    
-    ddy_df = -rho*tanh(u*(y(29) - y(26)));    
+    ddz_df = -rho*tanh(u*(y(28) - y(25)));
+    ddy_df = -rho*tanh(u*(y(29) - y(26)));
     ddx_df = -rho*tanh(u*(y(30) - y(27)));
     
     d3z_d = -rho*tanh(u*(y(31) - y(28)));
@@ -142,38 +142,38 @@ if (SF == 3) % Z reference w/ nonlinear saturated smoothing filter
     d4z_d = -rho*tanh(u*(y(34) - y(31)));
     d4y_d = -rho*tanh(u*(y(35) - y(32)));
     d4x_d = -rho*tanh(u*(y(36) - y(33)));
-        
+    
     z_ref = y(25);
     y_ref = y(26);
     x_ref = y(27);
     dz_ref = dz_df;
     dy_ref = dy_df;
-    dx_ref = dx_df;    
+    dx_ref = dx_df;
 end
 %-------------------------------------------------------------------------%
 
 
-% --- Error variables ----------------------------------------------------% 
-e_x = X-x_ref; de_x = dX-dx_ref; 
+% --- Error variables ----------------------------------------------------%
+e_x = X-x_ref; de_x = dX-dx_ref;
 e_y = Y-y_ref; de_y = dY-dy_ref;
 e_z = Z-z_ref; de_z = dZ-dz_ref;
 %-------------------------------------------------------------------------%
 
 
 % --- Error derivative estimator -----------------------------------------%
-if (EE == 0)
+if (EE == 0) % assume state variables are perfectly measured
     de_z_est = de_z;
     de_y_est = de_y;
     de_x_est = de_x;
 end
 
-if (EE == 1)    
+if (EE == 1) % estimate error derivatives with linear estimator
     de_z_est = -Ke_lin*(y(37) - e_z);
     de_y_est = -Ke_lin*(y(38) - e_y);
     de_x_est = -Ke_lin*(y(39) - e_x);
 end
 
-if (EE == 2)
+if (EE == 2) % estimate error derivatives with super twisting estimator
     de_z_est = -Ke_st*sqrt(abs(y(37)-e_z))*sign(y(37)-e_z) + y(40);
     de_y_est = -Ke_st*sqrt(abs(y(38)-e_y))*sign(y(38)-e_y) + y(41);
     de_x_est = -Ke_st*sqrt(abs(y(39)-e_x))*sign(y(39)-e_x) + y(42);
@@ -181,246 +181,232 @@ end
 %-------------------------------------------------------------------------%
 
 
-% --- Quadrotor parameters(nominal) --------------------------------------%
-% Parametri: m, Ix, Iy, Iz su pretpostavljene vrijednosti realnih
-% parametara mm, Ixx, Iyy, Izz koje koristimo u kontroleru (robusnost)
-m = 1.0*mm; 
-Ix = 1.0*Ixx; 
-Iy = 1.0*Iyy; 
-Iz = 1.0*Izz; 
+% --- Quadrotor parameters (nominal) -------------------------------------%
+% Parameters m, Ix, Iy, Iz are used in controllers (assumed values)
+% Parameters mm, Ixx, Iyy, Izz are actual quadrotor values (physical model)
+m = 1.0*mm;
+Ix = 1.0*Ixx;
+Iy = 1.0*Iyy;
+Iz = 1.0*Izz;
 %-------------------------------------------------------------------------%
 
-s0 = 0; s1 = 0; s2 = 0; s3 = 0;
-
-if (YY == 1)
 % --- PD controller ------------------------------------------------------%
-
-% U_0 = m*(grav + k_D*dZ + k_P*e_z); % z velocity is measured (dZ known)
-% U_0 = m*(grav + k_D*de_z_est + k_P*e_z); % velocity is not measured, derivatives are estimated
-U_0 = max((m*(grav + k_D*de_z_est + k_P*e_z)), 0); % limit to positive numbers only
-
-U_1 = -k_D*dPhi - k_P*Phi;
-U_2 = -k_D*dTheta - k_P*Theta;
-U_3 = -k_D*dPsi - k_P*Psi;
-%-------------------------------------------------------------------------%
+if (YY == 1)    
+    % U_0 = m*(grav + k_D*dZ + k_P*e_z); % z velocity is measured (dZ known)
+    % U_0 = m*(grav + k_D*de_z_est + k_P*e_z); % velocity is not measured, derivatives are estimated
+    U_0 = max((m*(grav + k_D*de_z_est + k_P*e_z)), 0); % limit to positive numbers only
+    
+    U_1 = -k_D*dPhi - k_P*Phi;
+    U_2 = -k_D*dTheta - k_P*Theta;
+    U_3 = -k_D*dPsi - k_P*Psi;
 end
+%-------------------------------------------------------------------------%
 
-if (YY == 2)
 % --- PID controller -----------------------------------------------------%
-
-% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
-% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
-U_0 = max((m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17)), 0); % limit to positive numbers only
-
-U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
-U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
-U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
-%-------------------------------------------------------------------------%
+if (YY == 2)    
+    % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
+    % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
+    U_0 = max((m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17)), 0); % limit to positive numbers only
+    
+    U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
+    U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
+    U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
 end
+%-------------------------------------------------------------------------%
 
-if (YY == 3)
 % --- Trajectory tracking control law ------------------------------------%
-
-% U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
-% U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
-U_0 = max(-m*(-grav + ddz_d -kk_D*de_z_est - kk_P*e_z - kk_I*y(17)), 0); % limit to positive numbers only
-
-dde_x = (-grav/m)*Theta - ddx_d;
-d3e_x = (-grav/m)*dTheta - d3x_d;
-
-dde_y = (grav/m)*Phi - ddy_d;
-d3e_y = (grav/m)*dPhi - d3y_d;
-
-U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y_est - k_0*e_y);
-U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x_est - k_0*e_x);
-U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(20));
-%-------------------------------------------------------------------------%
+if (YY == 3)    
+    % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
+    % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
+    U_0 = max(-m*(-grav + ddz_d -kk_D*de_z_est - kk_P*e_z - kk_I*y(17)), 0); % limit to positive numbers only
+    
+    dde_x = (-grav/m)*Theta - ddx_d;
+    d3e_x = (-grav/m)*dTheta - d3x_d;
+    
+    dde_y = (grav/m)*Phi - ddy_d;
+    d3e_y = (grav/m)*dPhi - d3y_d;
+    
+    U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y_est - k_0*e_y);
+    U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x_est - k_0*e_x);
+    U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(20));
 end
+%-------------------------------------------------------------------------%
 
-if (YY == 4)
 % --- Sliding mode 1st order (sign) --------------------------------------%
-
-p = 1; eps = 0.01;
-Uz = 20; % 4 values tested: 20, 50, 100, 150
-% s0 = de_z + p*e_z;
-s0 = de_z_est + p*e_z;
-
-% U_0 = Uz*sign(s0);
-% U_0 = m*Uz*sign(s0);
-% U_0 = m*(grav + Uz*sign(s0));
-% U_0 = m*(grav + Uz*s0 - Uz*sign(s0));
-
-% U_0 = m*(grav + Uz*s0 + Uz*( s0 / (abs(s0) + eps) ) );
-
-U_0 = max(m*(grav + Uz*s0 + Uz*sign(s0)), 0); % limit to positive numbers only
-
-% s0 = de_z_est + (k_P/k_D)*e_z;
-% U_0 = m*(grav + k_D*s0 + k_D*sign(s0));
-% U_0 = m*(grav + k_D*s0 + k_D*( s0 / (abs(s0) + eps) ) );
-% U_0 = max((m*(grav + k_D*s0 + k_D*( s0 / (abs(s0) + eps) ) )), 0); % limit to positive numbers only
-
-U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
-U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
-U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
-%-------------------------------------------------------------------------%
+if (YY == 4)    
+    p = 1; eps = 0.01;
+    Uz = 20; % 4 values tested: 20, 50, 100, 150
+    % s0 = de_z + p*e_z;
+    s0 = de_z_est + p*e_z;
+    
+    % U_0 = Uz*sign(s0);
+    % U_0 = m*Uz*sign(s0);
+    % U_0 = m*(grav + Uz*sign(s0));
+    % U_0 = m*(grav + Uz*s0 - Uz*sign(s0));
+    
+    % U_0 = m*(grav + Uz*s0 + Uz*( s0 / (abs(s0) + eps) ) );
+    
+    U_0 = max(m*(grav + Uz*s0 + Uz*sign(s0)), 0); % limit to positive numbers only
+    
+    % s0 = de_z_est + (k_P/k_D)*e_z;
+    % U_0 = m*(grav + k_D*s0 + k_D*sign(s0));
+    % U_0 = m*(grav + k_D*s0 + k_D*( s0 / (abs(s0) + eps) ) );
+    % U_0 = max((m*(grav + k_D*s0 + k_D*( s0 / (abs(s0) + eps) ) )), 0); % limit to positive numbers only
+    
+    U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
+    U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
+    U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
 end
-
-if (YY == 5)
-% --- Super-twisting --------------------------------------%
-
-p = 3; Uz = 20; % 20, 50, 80, 100
-
-s0 = de_z_est + p*e_z;
-% s0 = de_z_est + (k_P/k_D)*e_z;
-
-ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(21);
-% ST_0 = -sqrt(Uz)*sqrt(abs(s0))*sign(s0) + y(21); % sa U=100 i vise daje ok rez ali Fz je kratko negativan
-
-
-% U_0 = ST_0; % add pure super-twisting
-% U_0 = m*ST_0;
-% U_0 = m*(grav + ST_0);
-% U_0 = m*(grav - Uz*s0 + ST_0);
-% U_0 = m*(grav - k_D*s0) + ST_0;
-
-%k_m = 4;
-%U_0 = m*grav + k_m*tanh( -(m/k_m)*Uz*s0 + (1/k_m)*ST_0);
-
-U_0 = max((m*grav + m*Uz*s0 - ST_0), 0); % limit to positive numbers only
-
-U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
-U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
-U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
 %-------------------------------------------------------------------------%
+
+% --- Super-twisting -----------------------------------------------------%
+if (YY == 5)    
+    p = 3; Uz = 20; % 20, 50, 80, 100
+    
+    s0 = de_z_est + p*e_z;
+    % s0 = de_z_est + (k_P/k_D)*e_z;
+    
+    ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(21);
+    % ST_0 = -sqrt(Uz)*sqrt(abs(s0))*sign(s0) + y(21);
+    
+    % U_0 = ST_0; % add pure super-twisting
+    % U_0 = m*ST_0;
+    % U_0 = m*(grav + ST_0);
+    % U_0 = m*(grav - Uz*s0 + ST_0);
+    % U_0 = m*(grav - k_D*s0) + ST_0;
+    
+    %k_m = 4;
+    %U_0 = m*grav + k_m*tanh( -(m/k_m)*Uz*s0 + (1/k_m)*ST_0);
+    
+    U_0 = max((m*grav + m*Uz*s0 - ST_0), 0); % limit to positive numbers only
+    
+    U_1 = -kk_D*dPhi - kk_P*Phi - kk_I*y(18);
+    U_2 = -kk_D*dTheta - kk_P*Theta - kk_I*y(19);
+    U_3 = -kk_D*dPsi - kk_P*Psi - kk_I*y(20);
 end
-
-if (YY == 6)
-% --- 1-SM Trajectory tracking control law ------------------------------------%
-
-dde_x = -Theta*grav - ddx_d;
-d3e_x = -dTheta*grav - d3x_d;
-
-dde_y = Phi*grav - ddy_d;
-d3e_y = dPhi*grav - d3y_d;
-
-%U = 20;
-
-K = 20;
-% Sliding surfaces
-%lambda = 3; p = 3;
-lambda = 5; p = 5;
-lambdaz = 1; pz = 1;
-alpha_z0 = pz;
-alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
-alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
-alpha_psi0 = pz;
-
-Uz = 0; Ux = 4; Uy = 4; Upsi = 0;
-% Z
-s0 = de_z_est + alpha_z0*e_z;
-k_z1 = alpha_z0 + lambdaz;
-k_z0 = alpha_z0*lambdaz;
-
-%X
-s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x_est + alpha_x0*e_x;
-k_x3 = alpha_x2 + lambda;
-k_x2 = alpha_x1 + lambda*alpha_x2;
-k_x1 = alpha_x0 + lambda*alpha_x1;
-k_x0 = lambda * alpha_x0;
-
-%Y
-s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y_est + alpha_y0*e_y;
-k_y3 = alpha_y2 + lambda;
-k_y2 = alpha_y1 + lambda*alpha_y2;
-k_y1 = alpha_y0 + lambda*alpha_y1;
-k_y0 = lambda * alpha_y0;
-
-% PSI
-s3 = dPsi + alpha_psi0*Psi;
-k_psi1 = alpha_psi0 + lambdaz;
-k_psi0 = alpha_psi0 * lambdaz;
-
-
-
-%1-SM controllers
-SM_0 = -Uz*sign(s0);
-SM_1 = -Uy*sign(s1);
-SM_2 = -Ux*sign(s2);
-SM_PSI = -Upsi*sign(s3);
-
-% SM_0 = -Uz*tanh(K*s0);
-% SM_1 = -Uy*tanh(K*s1);
-% SM_2 = -Ux*tanh(K*s2);
-% SM_PSI = -Upsi*tanh(K*s3);
-
-% Control laws
-U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - SM_0), 0);
-U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + SM_1;
-U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) -SM_2;
-U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + SM_PSI;
 %-------------------------------------------------------------------------%
+
+% --- 1-SM Trajectory tracking control law -------------------------------%
+if (YY == 6)    
+    dde_x = -Theta*grav - ddx_d;
+    d3e_x = -dTheta*grav - d3x_d;
+    
+    dde_y = Phi*grav - ddy_d;
+    d3e_y = dPhi*grav - d3y_d;
+    
+    % Sliding surfaces
+    %lambda = 3; p = 3;
+    lambda = 5; p = 5;
+    lambdaz = 1; pz = 1;
+    alpha_z0 = pz;
+    alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
+    alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
+    alpha_psi0 = pz;
+    
+    Uz = 0; Ux = 4; Uy = 4; Upsi = 0;
+    % Z
+    s0 = de_z_est + alpha_z0*e_z;
+    k_z1 = alpha_z0 + lambdaz;
+    k_z0 = alpha_z0*lambdaz;
+    
+    %X
+    s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x_est + alpha_x0*e_x;
+    k_x3 = alpha_x2 + lambda;
+    k_x2 = alpha_x1 + lambda*alpha_x2;
+    k_x1 = alpha_x0 + lambda*alpha_x1;
+    k_x0 = lambda * alpha_x0;
+    
+    %Y
+    s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y_est + alpha_y0*e_y;
+    k_y3 = alpha_y2 + lambda;
+    k_y2 = alpha_y1 + lambda*alpha_y2;
+    k_y1 = alpha_y0 + lambda*alpha_y1;
+    k_y0 = lambda * alpha_y0;
+    
+    % PSI
+    s3 = dPsi + alpha_psi0*Psi;
+    k_psi1 = alpha_psi0 + lambdaz;
+    k_psi0 = alpha_psi0 * lambdaz;
+    
+    
+    % 1-SM controllers:
+    % Signum
+    SM_0 = -Uz*sign(s0);
+    SM_1 = -Uy*sign(s1);
+    SM_2 = -Ux*sign(s2);
+    SM_PSI = -Upsi*sign(s3);
+    
+    % Smooth variant tanh
+    % K = 20;
+    % SM_0 = -Uz*tanh(K*s0);
+    % SM_1 = -Uy*tanh(K*s1);
+    % SM_2 = -Ux*tanh(K*s2);
+    % SM_PSI = -Upsi*tanh(K*s3);
+    
+    % Control laws
+    U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - SM_0), 0);
+    U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + SM_1;
+    U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) -SM_2;
+    U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + SM_PSI;
 end
-
-if (YY == 7)
-% --- Super-twisting Trajectory tracking control law ------------------------------------%
-
-dde_x = -Theta*grav - ddx_d;
-d3e_x = -dTheta*grav - d3x_d;
-
-dde_y = Phi*grav - ddy_d;
-d3e_y = dPhi*grav - d3y_d;
-
-% Sliding surfaces
-%lambda = 3; p = 3;
-lambda = 5; p = 5;
-lambdaz = 1; pz = 1;
-alpha_z0 = pz;
-alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
-alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
-alpha_psi0 = pz;
-
-% bez poremecaja daje dosta dobre rezultate:
-% lambda = 3; p = 3;
-% lambdaz = 1; pz = 1;
-% mm = 0.53; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
-% Uz = 0; Ux = 0.01; Uy = 0.01; Upsi = 0;
-Uz = 0; Ux = 0.6; Uy = 0.6; Upsi = 0;
-% Z
-s0 = de_z_est + alpha_z0*e_z;
-k_z1 = alpha_z0 + lambdaz;
-k_z0 = alpha_z0*lambdaz;
-
-%X
-s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x_est + alpha_x0*e_x;
-k_x3 = alpha_x2 + lambda;
-k_x2 = alpha_x1 + lambda*alpha_x2;
-k_x1 = alpha_x0 + lambda*alpha_x1;
-k_x0 = lambda * alpha_x0;
-
-%Y
-s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y_est + alpha_y0*e_y;
-k_y3 = alpha_y2 + lambda;
-k_y2 = alpha_y1 + lambda*alpha_y2;
-k_y1 = alpha_y0 + lambda*alpha_y1;
-k_y0 = lambda * alpha_y0;
-
-% PSI
-s3 = dPsi + alpha_psi0*Psi;
-k_psi1 = alpha_psi0 + lambdaz;
-k_psi0 = alpha_psi0 * lambdaz;
-
-ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(21);
-ST_1 = -Uy*sqrt(abs(s1))*sign(s1) + y(22);
-ST_2 = -Ux*sqrt(abs(s2))*sign(s2) + y(23);
-ST_PSI = -Upsi*sqrt(abs(s3))*sign(s3) + y(24);
-
-% Control laws
-U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - ST_0), 0);
-U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + ST_1;
-U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) - ST_2;
-U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
 %-------------------------------------------------------------------------%
+
+% --- Super-twisting Trajectory tracking control law ---------------------%
+if (YY == 7)    
+    dde_x = -Theta*grav - ddx_d;
+    d3e_x = -dTheta*grav - d3x_d;
+    
+    dde_y = Phi*grav - ddy_d;
+    d3e_y = dPhi*grav - d3y_d;
+    
+    % Sliding surfaces
+    %lambda = 3; p = 3;
+    lambda = 5; p = 5;
+    lambdaz = 1; pz = 1;
+    alpha_z0 = pz;
+    alpha_x0 = p^3; alpha_x1 = 3*p^2; alpha_x2 = 3*p;
+    alpha_y0 = p^3; alpha_y1 = 3*p^2; alpha_y2 = 3*p;
+    alpha_psi0 = pz;
+    
+    Uz = 0; Ux = 0.6; Uy = 0.6; Upsi = 0;
+    
+    % Z
+    s0 = de_z_est + alpha_z0*e_z;
+    k_z1 = alpha_z0 + lambdaz;
+    k_z0 = alpha_z0*lambdaz;
+    
+    %X
+    s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x_est + alpha_x0*e_x;
+    k_x3 = alpha_x2 + lambda;
+    k_x2 = alpha_x1 + lambda*alpha_x2;
+    k_x1 = alpha_x0 + lambda*alpha_x1;
+    k_x0 = lambda * alpha_x0;
+    
+    %Y
+    s1 = d3e_y + alpha_y2*dde_y + alpha_y1*de_y_est + alpha_y0*e_y;
+    k_y3 = alpha_y2 + lambda;
+    k_y2 = alpha_y1 + lambda*alpha_y2;
+    k_y1 = alpha_y0 + lambda*alpha_y1;
+    k_y0 = lambda * alpha_y0;
+    
+    % PSI
+    s3 = dPsi + alpha_psi0*Psi;
+    k_psi1 = alpha_psi0 + lambdaz;
+    k_psi0 = alpha_psi0 * lambdaz;
+    
+    % Super-twisting controllers:
+    ST_0 = -Uz*sqrt(abs(s0))*sign(s0) + y(21);
+    ST_1 = -Uy*sqrt(abs(s1))*sign(s1) + y(22);
+    ST_2 = -Ux*sqrt(abs(s2))*sign(s2) + y(23);
+    ST_PSI = -Upsi*sqrt(abs(s3))*sign(s3) + y(24);
+    
+    % Control laws
+    U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - ST_0), 0);
+    U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + ST_1;
+    U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) - ST_2;
+    U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
 end
+%-------------------------------------------------------------------------%
 
 % --- Actuator saturation ------------------------------------------------%
 Omega_orig = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
@@ -468,10 +454,10 @@ if (DD == 4)
     d_2 = 1.5 + 2.5*sin(4*t);
     d_3 = 0;
 end
-%-------------------------------------------------------------------------%   
+%-------------------------------------------------------------------------%
 
 
-% --- Motor saturation ---------------------------------------------------% 
+% --- Motor saturation ---------------------------------------------------%
 %F = kg*tanh((U_0 + d_0)/kg);
 
 if (SAT) % With saturation
@@ -479,115 +465,113 @@ if (SAT) % With saturation
     T_1 = FF(2) + d_1;
     T_2 = FF(3) + d_2;
     T_3 = FF(4) + d_3;
-else % Without saturation    
+else % Without saturation
     F = U_0 + d_0;
     T_1 = U_1 + d_1;
     T_2 = U_2 + d_2;
     T_3 = U_3 + d_3;
 end
-%-------------------------------------------------------------------------% 
-
-if (QQ == 1)
-% --- MODEL 1 ------------------------------------------------------------%
-% Rotation matrix
-R_x = @(x) [1 0 0; 0 cos(x) -sin(x); 0 sin(x) cos(x)]; % B to v2
-R_y = @(x) [cos(x) 0 sin(x); 0 1 0; -sin(x) 0 cos(x)]; % v2 to v1
-R_z = @(x) [cos(x) -sin(x) 0; sin(x) cos(x) 0; 0 0 1]; % v1 to I
-
-R_B2E = R_z(Psi)*R_y(Theta)*R_x(Phi); % Rotation matrix Body to Earth frame
-
-% Transfer matrix
-T_B2E = (1/cos(Theta))*[cos(Theta) sin(Theta)*sin(Phi)  sin(Theta)*cos(Phi);
-                                 0 cos(Theta)*cos(Phi) -cos(Theta)*sin(Phi);
-                                 0            sin(Phi)             cos(Phi)];
-                      
-% Skew-symmetric matrix
-S = @(x) [0 -x(3) x(2); x(3) 0 -x(1); -x(2) x(1) 0];
-
-M = [mm*eye(3) zeros(3); zeros(3) I_B*eye(3)];
-C = [zeros(3) -S(mm*Velocity_Lin_B); zeros(3) -S(I_B*Velocity_Ang_B)];
-G = [R_B2E'*[0; 0; mm*grav]; zeros(3,1)];
-U_B = [0; 0; -F; T_1; T_2; T_3];
-
-dy(1:3) = R_B2E*Velocity_Lin_B;
-dy(4:6) = T_B2E*Velocity_Ang_B;
-dy(7:12) = inv(M)*(-C*Velocity_B + G + U_B);
 %-------------------------------------------------------------------------%
+
+% --- MODEL 1 ------------------------------------------------------------%
+if (QQ == 1)    
+    % Rotation matrix
+    R_x = @(x) [1 0 0; 0 cos(x) -sin(x); 0 sin(x) cos(x)]; % B to v2
+    R_y = @(x) [cos(x) 0 sin(x); 0 1 0; -sin(x) 0 cos(x)]; % v2 to v1
+    R_z = @(x) [cos(x) -sin(x) 0; sin(x) cos(x) 0; 0 0 1]; % v1 to I
+    
+    R_B2E = R_z(Psi)*R_y(Theta)*R_x(Phi); % Rotation matrix Body to Earth frame
+    
+    % Transfer matrix
+    T_B2E = (1/cos(Theta))*[cos(Theta) sin(Theta)*sin(Phi)  sin(Theta)*cos(Phi);
+        0 cos(Theta)*cos(Phi) -cos(Theta)*sin(Phi);
+        0            sin(Phi)             cos(Phi)];
+    
+    % Skew-symmetric matrix
+    S = @(x) [0 -x(3) x(2); x(3) 0 -x(1); -x(2) x(1) 0];
+    
+    M = [mm*eye(3) zeros(3); zeros(3) I_B*eye(3)];
+    C = [zeros(3) -S(mm*Velocity_Lin_B); zeros(3) -S(I_B*Velocity_Ang_B)];
+    G = [R_B2E'*[0; 0; mm*grav]; zeros(3,1)];
+    U_B = [0; 0; -F; T_1; T_2; T_3];
+    
+    dy(1:3) = R_B2E*Velocity_Lin_B;
+    dy(4:6) = T_B2E*Velocity_Ang_B;
+    dy(7:12) = inv(M)*(-C*Velocity_B + G + U_B);
 end
+%-------------------------------------------------------------------------%
 
 sPhi = sin(Phi); cPhi = cos(Phi);
 sTheta = sin(Theta); cTheta = cos(Theta);
 sPsi = sin(Psi); cPsi = cos(Psi);
 
-if (QQ == 2)
 % --- MODEL 2 ------------------------------------------------------------%
-dy(1) = y(2);
-dy(2) = (sPsi*sPhi + cPsi*sTheta*cPhi) * (-F/mm);
-
-dy(3) = y(4);
-dy(4) = (-cPsi*sPhi + sPsi*sTheta*cPhi) * (-F/mm);
-
-dy(5) = y(6);
-dy(6) = grav + (cTheta*cPhi)*(-F/mm);
-
-dy(7) = y(8);
-dy(8) = ((Iyy-Izz)/Ixx)*dTheta*dPsi + (T_1/Ixx);
-
-dy(9) = y(10);
-dy(10) = ((Izz-Ixx)/Iyy)*dPhi*dPsi + (T_2/Iyy);
-
-dy(11) = y(12);
-dy(12) = ((Ixx-Iyy)/Izz)*dPhi*dTheta + (T_3/Izz);
-
-%-------------------------------------------------------------------------%
+if (QQ == 2)    
+    dy(1) = y(2);
+    dy(2) = (sPsi*sPhi + cPsi*sTheta*cPhi) * (-F/mm);
+    
+    dy(3) = y(4);
+    dy(4) = (-cPsi*sPhi + sPsi*sTheta*cPhi) * (-F/mm);
+    
+    dy(5) = y(6);
+    dy(6) = grav + (cTheta*cPhi)*(-F/mm);
+    
+    dy(7) = y(8);
+    dy(8) = ((Iyy-Izz)/Ixx)*dTheta*dPsi + (T_1/Ixx);
+    
+    dy(9) = y(10);
+    dy(10) = ((Izz-Ixx)/Iyy)*dPhi*dPsi + (T_2/Iyy);
+    
+    dy(11) = y(12);
+    dy(12) = ((Ixx-Iyy)/Izz)*dPhi*dTheta + (T_3/Izz);
 end
+%-------------------------------------------------------------------------%
 
-if (QQ == 3)
 % --- MODEL 3 ------------------------------------------------------------%
-dy(1) = y(2);
-dy(2) = Theta * (-F/mm);
-
-dy(3) = y(4);
-dy(4) = -Phi * (-F/mm);
-
-dy(5) = y(6);
-dy(6) = grav - F/mm;
-
-dy(7) = y(8);
-dy(8) = T_1/Ixx;
-
-dy(9) = y(10);
-dy(10) = T_2/Iyy;
-
-dy(11) = y(12);
-dy(12) = T_3/Izz;
-
-%-------------------------------------------------------------------------%
+if (QQ == 3)    
+    dy(1) = y(2);
+    dy(2) = Theta * (-F/mm);
+    
+    dy(3) = y(4);
+    dy(4) = -Phi * (-F/mm);
+    
+    dy(5) = y(6);
+    dy(6) = grav - F/mm;
+    
+    dy(7) = y(8);
+    dy(8) = T_1/Ixx;
+    
+    dy(9) = y(10);
+    dy(10) = T_2/Iyy;
+    
+    dy(11) = y(12);
+    dy(12) = T_3/Izz;
 end
+%-------------------------------------------------------------------------%
 
-if (QQ == 4)
 % --- MODEL 4 ------------------------------------------------------------%
-dy(1) = y(2);
-dy(2) = -Theta * grav;
-
-dy(3) = y(4);
-dy(4) = Phi * grav;
-
-dy(5) = y(6);
-dy(6) = grav - F/mm;
-
-dy(7) = y(8);
-dy(8) = T_1/Ixx;
-
-dy(9) = y(10);
-dy(10) = T_2/Iyy;
-
-dy(11) = y(12);
-dy(12) = T_3/Izz;
-
-%-------------------------------------------------------------------------%
+if (QQ == 4)    
+    dy(1) = y(2);
+    dy(2) = -Theta * grav;
+    
+    dy(3) = y(4);
+    dy(4) = Phi * grav;
+    
+    dy(5) = y(6);
+    dy(6) = grav - F/mm;
+    
+    dy(7) = y(8);
+    dy(8) = T_1/Ixx;
+    
+    dy(9) = y(10);
+    dy(10) = T_2/Iyy;
+    
+    dy(11) = y(12);
+    dy(12) = T_3/Izz;
 end
+%-------------------------------------------------------------------------%
 
+% --- Other first order differential equations definitions ---------------%
 dy(13) = F;
 dy(14) = T_1;
 dy(15) = T_2;
@@ -601,7 +585,7 @@ dy(20) = Psi;
 
 if (YY == 5) % super-twisting tracking control law integral part
     dy(21) = -Uz*sign(s0);
-elif (YY == 7)
+    elif (YY == 7)
     dy(21) = -Uz*sign(s0);
     dy(22) = -Uy*sign(s1);
     dy(23) = -Ux*sign(s2);
@@ -615,7 +599,7 @@ if (SF == 1)||(SF == 2)||(SF == 3)
     dy(25) = dz_df;
     dy(26) = dy_df;
     dy(27) = dx_df;
-
+    
     dy(28) = ddz_df;
     dy(29) = ddy_df;
     dy(30) = ddx_df;
@@ -656,5 +640,5 @@ dy(53) = Omega(4);
 dy(54) = x_ref;
 dy(55) = y_ref;
 dy(56) = z_ref;
-
+%-------------------------------------------------------------------------%
 end % function QuadroHB
