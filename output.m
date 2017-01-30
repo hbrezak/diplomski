@@ -89,9 +89,9 @@ end
 
 
 fprintf('QUADROTOR HELICOPTER MODEL SIMULATION \n \n');
-fprintf('Using quadrotor data \n mm = %.2f, Ixx = %.4f, Iyy = %.4f, Izz = %.4f \n', mm, Ixx, Iyy, Izz);
-fprintf('Using motor data \n b = %.2f, d = %.4f, l = %.3f \n', b, d, l);
-fprintf('Max. motor angular velocity: %d rad/s\n\n', AngVel_limit);
+fprintf('Using quadrotor data: \n     mm = %.2f, Ixx = %.4f, Iyy = %.4f, Izz = %.4f \n', mm, Ixx, Iyy, Izz);
+fprintf('Using motor data: \n     b = %.4e, d = %.4e, l = %.4f \n', b, d, l);
+fprintf('Max. motor angular velocity: \n     AngVel_limit = %d rad/s\n\n', AngVel_limit);
 fprintf('Simulation runtime: %d sec.\n', T);
 fprintf('Running MODEL %d \n', QQ);
 fprintf('Selected controller:  YY = %d - %s \n', YY, controller);
