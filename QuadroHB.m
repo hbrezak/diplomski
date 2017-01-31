@@ -40,8 +40,8 @@ end
 
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
-    dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-    dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
     
     % what ever T is, set step to start at 1 sec. and lower it to 0 at last quarter
     if(t<1)
@@ -190,6 +190,7 @@ Iy = 1.0*Iyy;
 Iz = 1.0*Izz;
 %-------------------------------------------------------------------------%
 
+% === CONTROLLERS ========================================================%
 % --- PD controller ------------------------------------------------------%
 if (YY == 1)    
     % U_0 = m*(grav + k_D*dZ + k_P*e_z); % z velocity is measured (dZ known)
@@ -214,26 +215,8 @@ if (YY == 2)
 end
 %-------------------------------------------------------------------------%
 
-% --- Trajectory tracking control law ------------------------------------%
-if (YY == 3)    
-    % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
-    % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
-    U_0 = max(-m*(-grav + ddz_d -kk_D*de_z_est - kk_P*e_z - kk_I*y(17)), 0); % limit to positive numbers only
-    
-    dde_x = (-grav/m)*Theta - ddx_d;
-    d3e_x = (-grav/m)*dTheta - d3x_d;
-    
-    dde_y = (grav/m)*Phi - ddy_d;
-    d3e_y = (grav/m)*dPhi - d3y_d;
-    
-    U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y_est - k_0*e_y);
-    U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x_est - k_0*e_x);
-    U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(20));
-end
-%-------------------------------------------------------------------------%
-
 % --- Sliding mode 1st order (sign) --------------------------------------%
-if (YY == 4)    
+if (YY == 3)    
     p = 1; eps = 0.01;
     Uz = 20; % 4 values tested: 20, 50, 100, 150
     % s0 = de_z + p*e_z;
@@ -259,8 +242,8 @@ if (YY == 4)
 end
 %-------------------------------------------------------------------------%
 
-% --- Super-twisting -----------------------------------------------------%
-if (YY == 5)    
+% --- Super-twisting controller ------------------------------------------%
+if (YY == 4)    
     p = 3; Uz = 20; % 20, 50, 80, 100
     
     s0 = de_z_est + p*e_z;
@@ -286,6 +269,25 @@ if (YY == 5)
 end
 %-------------------------------------------------------------------------%
 
+
+% --- Trajectory tracking control law ------------------------------------%
+if (YY == 5)    
+    % U_0 = kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control
+    % U_0 = m*grav +kk_D*de_z_est + kk_P*e_z + kk_I*y(17); % PID control w/ gravity compensation
+    U_0 = max(-m*(-grav + ddz_d -kk_D*de_z_est - kk_P*e_z - kk_I*y(17)), 0); % limit to positive numbers only
+    
+    dde_x = (-grav/m)*Theta - ddx_d;
+    d3e_x = (-grav/m)*dTheta - d3x_d;
+    
+    dde_y = (grav/m)*Phi - ddy_d;
+    d3e_y = (grav/m)*dPhi - d3y_d;
+    
+    U_1 = ((m*Ix)/grav)*(d4y_d - k_3*d3e_y - k_2*dde_y - k_1*de_y_est - k_0*e_y);
+    U_2 = ((-m*Iy)/grav)*(d4x_d - k_3*d3e_x - k_2*dde_x - k_1*de_x_est - k_0*e_x);
+    U_3 = Iz*(-kk_D*dPsi - kk_P*Psi - kk_I*y(20));
+end
+%-------------------------------------------------------------------------%
+
 % --- 1-SM Trajectory tracking control law -------------------------------%
 if (YY == 6)    
     dde_x = -Theta*grav - ddx_d;
@@ -307,7 +309,7 @@ if (YY == 6)
     % Z
     s0 = de_z_est + alpha_z0*e_z;
     k_z1 = alpha_z0 + lambdaz;
-    k_z0 = alpha_z0*lambdaz;
+    k_z0 = alpha_z0 * lambdaz;
     
     %X
     s2 = d3e_x + alpha_x2*dde_x + alpha_x1*de_x_est + alpha_x0*e_x;
@@ -346,7 +348,7 @@ if (YY == 6)
     % Control laws
     U_0 = max((-m*(ddz_d - grav -k_z1*de_z_est - k_z0*e_z) - SM_0), 0);
     U_1 = (Ix/grav)*(d4y_d - k_y3*d3e_y - k_y2*dde_y - k_y1*de_y_est - k_y0*e_y) + SM_1;
-    U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) -SM_2;
+    U_2 = (-Iy/grav)*(d4x_d - k_x3*d3e_x - k_x2*dde_x - k_x1*de_x_est - k_x0*e_x) - SM_2;
     U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + SM_PSI;
 end
 %-------------------------------------------------------------------------%
@@ -407,6 +409,7 @@ if (YY == 7)
     U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
 end
 %-------------------------------------------------------------------------%
+%=========================================================================%
 
 % --- Actuator saturation ------------------------------------------------%
 Omega_orig = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
@@ -585,11 +588,12 @@ dy(20) = Psi;
 
 if (YY == 5) % super-twisting tracking control law integral part
     dy(21) = -Uz*sign(s0);
-    elif (YY == 7)
+else if (YY == 7)
     dy(21) = -Uz*sign(s0);
     dy(22) = -Uy*sign(s1);
     dy(23) = -Ux*sign(s2);
     dy(24) = -Upsi*sign(s3);
+    end
 end
 
 % SMOOTHING FILTERS

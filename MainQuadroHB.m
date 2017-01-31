@@ -19,19 +19,20 @@ u = 5; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-QQ = 4; % MODEL 4 - linear quadrotor model
+% QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 
 % === CHOOSE CONTROLLER ==================================================%
 % YY = 1; % linear PD control with gravity compensation
 % YY = 2; % PID control with gravity compensation
-% YY = 3; % Trajectory tracking control law - Z axis PID controller
-% YY = 4; % Sliding mode 1st order (sign)
-% YY = 5; % Super-twisting (2nd order sliding mode) algorithm
+% YY = 3; % Sliding mode 1st order (Z axis)
+% YY = 4; % Super-twisting (2nd order sliding mode) algorithm (Z axis)
+
+% YY = 5; % PID trajectory tracking control law
 % YY = 6; % 1-SM trajectory tracking control law
 YY = 7; % Super-twisting trajectory tracking control law
 %=========================================================================%
@@ -53,24 +54,24 @@ RR = 2; % Spiral trajectory
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
 % SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
-% SF = 2; % Z reference w/ smoothing filter 2nd order
-SF = 3; % Z reference w/ nonlinear saturated smoothing filter
+SF = 2; % Z reference w/ smoothing filter 2nd order
+% SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
 
 % === CHOOSE ERROR DERIVATIVE ESTIMATOR ==================================%
-EE = 0; % w/o estimator
-% EE = 1; % linear estimator
+% EE = 0; % w/o estimator
+EE = 1; % linear estimator
 % EE = 2; % super-twisting estimator
 %=========================================================================%
 
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-DD = 0; % without disturbance
+% DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
-% DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
+DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 % DD = 4; % rapid alternating wave disturbance
 
 % --- Shape:
@@ -85,7 +86,7 @@ xx0 = zeros(1, N); % Set all initial conditions to zero
 
 % Define exceptions:
 if (QQ == 1)
-    xx0(4)=0*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
+    xx0(4)=1*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
 end
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
     xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
@@ -98,20 +99,20 @@ end
 % mm = 1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
 
 % "Flatness-based control of a quadrotor helicopter via feedforward linearization":
-% mm=0.5; Ixx = 0.005; Iyy = 0.005; Izz = 0.009;
+% mm = 0.5; Ixx = 0.005; Iyy = 0.005; Izz = 0.009;
 
 % "Dynamic modeling and nonlinear control strategy for an underactuated quad rotor rotorcraft":
-mm=0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309;
+mm = 0.6; Ixx = 0.0154; Iyy = 0.0154; Izz = 0.0309;
 
 % "Backstepping Control for a Quadrotor Helicopter":
-% mm=2; Ixx = 1.2416; Iyy = 1.2416; Izz = 2.4832; l = 0.1; d = 0.0000001; b=0.0000008;
+% mm = 2; Ixx = 1.2416; Iyy = 1.2416; Izz = 2.4832; l = 0.1; d = 0.0000001; b=0.0000008;
 % l - dist to COM; b - thrust factor; d - drag factor
-% (l, b, d) notation used in bible;
+% (l, b, d) notation used in thesis;
 % values l,d,b modified from original paper data (d, /, c)
 
 % "Robust output tracking control of a quadrotor in the presence of
 % external disturbances" (prof. Kasac, FAMENA 2013.):
-% mm=1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
+% mm = 1; Ixx = 0.62; Iyy = 0.62; Izz = 1.24;
 
 % Solidworks data for 250 class quad
 % mm = 0.65; Ixx = 0.002821; Iyy = 0.004446; Izz = 0.001825;
@@ -123,8 +124,8 @@ l = 0.125; % 250 class quadrotor frame
 
 
 % === CHOOSE MOTOR SATURATION ============================================%
-% SAT = true;
-SAT = false;
+SAT = true;
+% SAT = false;
 %=========================================================================%
 
 
@@ -351,19 +352,20 @@ end % MODEL SPECIFIC
 
 % --- GENERAL PLOTS ------------------------------------------------------%
 % Estimated error derivatives
-figure(5), set(gcf,'name','Estimated error derivatives','numbertitle','off')
-subplot(2,3,1), plot(td, de_x_est,'b-', td, de_x, 'r:', 'linewidth',4), ylabel('e_x, e_{x,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('de_{x, est}', 'de_x');
-subplot(2,3,4), semilogy(td, abs(de_x - de_x_est), '-b', 'linewidth',4), ylabel('|de_x - de_{x,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
-
-subplot(2,3,2), plot(td, de_y_est,'b-', td, de_y, 'r:', 'linewidth',4), ylabel('e_y, e_{y,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('de_{y, est}', 'de_y');
-subplot(2,3,5), semilogy(td, abs(de_y - de_y_est), '-b', 'linewidth',4), ylabel('|de_y - de_{y,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
-
-subplot(2,3,3), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('de_{z, est}', 'de_z');
-subplot(2,3,6), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
-
+if (EE ~= 0)
+    figure(5), set(gcf,'name','Estimated error derivatives','numbertitle','off')
+    subplot(2,3,1), plot(td, de_x_est,'b-', td, de_x, 'r:', 'linewidth',4), ylabel('e_x, e_{x,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    legend('de_{x, est}', 'de_x');
+    subplot(2,3,4), semilogy(td, abs(de_x - de_x_est), '-b', 'linewidth',4), ylabel('|de_x - de_{x,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+    
+    subplot(2,3,2), plot(td, de_y_est,'b-', td, de_y, 'r:', 'linewidth',4), ylabel('e_y, e_{y,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    legend('de_{y, est}', 'de_y');
+    subplot(2,3,5), semilogy(td, abs(de_y - de_y_est), '-b', 'linewidth',4), ylabel('|de_y - de_{y,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+    
+    subplot(2,3,3), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    legend('de_{z, est}', 'de_z');
+    subplot(2,3,6), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+end
 
 % Filtered reference
 if (SF ~= 0)
@@ -393,9 +395,14 @@ if (SF ~= 0)
 end
 
 % Disturbance shape
-if (DD ~= 0)
+if (DD == 4)
+    figure(9), set(gcf,'name','Disturbance shape','numbertitle','off')
+    subplot(2,1,1), plot(t, d_mx, 'b-', 'Linewidth', 4), ylabel('Wind gust in X direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+    subplot(2,1,2), plot(t, d_my, 'b-', 'Linewidth', 4), ylabel('Wind gust in Y direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+else if (DD ~= 0)
     figure(9), set(gcf,'name','Disturbance shape','numbertitle','off')
     plot(t, d_0, 'b-', 'Linewidth', 4), ylabel('Wind gust', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+    end
 end
 
 % Requested actuator angular velocities
