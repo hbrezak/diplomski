@@ -3,7 +3,7 @@ function dy = QuadroHB(t,y)
 global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
-global E_B inv_E_B AngVel_limit
+global E_B inv_E_B AngVel_limit dPhi_d dTheta_d dPsi_d
 
 dy = zeros(N, 1);
 
@@ -39,6 +39,11 @@ end
 
 
 % --- Reference trajectory parameters ------------------------------------%
+if (RR == 0)
+    x_d = 0; y_d = 0; z_d = 0;
+    dx_d = 0; dy_d = 0; dz_d = 0;
+end
+
 if (RR == 1)
     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
     y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
@@ -409,20 +414,43 @@ if (YY == 7)
     U_3 = Iz*(-k_psi1*dPsi - k_psi0*Psi) + ST_PSI;
 end
 %-------------------------------------------------------------------------%
+
+if (YY == 8)
+    e_dPhi = dPhi - dPhi_d;
+    e_dTheta = dTheta - dTheta_d;
+    e_dPsi = dPsi - dPsi_d;
+    
+    throttle = 1050;
+    roll_output = 0.7 * e_dPhi;
+    pitch_output = 0.7 * e_dTheta;
+    yaw_output = 4.5 * e_dPsi;
+    
+    Omega = [ throttle - roll_output - pitch_output + yaw_output;
+              throttle + roll_output + pitch_output + yaw_output;
+              throttle - roll_output + pitch_output - yaw_output;
+              throttle + roll_output - pitch_output - yaw_output; ];
+       
+    U = E_B * Omega.^2;
+    U_0 = U(1);
+    U_1 = U(2);
+    U_2 = U(3);
+    U_3 = U(4);   
+             
+end
 %=========================================================================%
 
 % --- Actuator saturation ------------------------------------------------%
 Omega_orig = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
 
-if (max(Omega_orig) > AngVel_limit)
-    scale_factor = AngVel_limit/max(Omega_orig);
-    Omega = Omega_orig .* scale_factor;
-else
-    Omega = Omega_orig;
-end
-%Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
-
-FF = E_B * Omega.^2;
+% if (max(Omega_orig) > AngVel_limit)
+%     scale_factor = AngVel_limit/max(Omega_orig);
+%     Omega = Omega_orig .* scale_factor;
+% else
+%     Omega = Omega_orig;
+% end
+% %Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
+% 
+% FF = E_B * Omega.^2;
 %-------------------------------------------------------------------------%
 
 % --- Disturbances (wind gust) -------------------------------------------%

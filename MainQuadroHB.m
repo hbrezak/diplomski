@@ -4,7 +4,7 @@ clear all; clc;
 global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
-global E_B inv_E_B AngVel_limit
+global E_B inv_E_B AngVel_limit dPhi_d dTheta_d dPsi_d
 
 T = 40; % Simulation time
 N = 56; % Number of differential equations
@@ -19,10 +19,10 @@ u = 5; % larger - sharper change
 kg = 28; % max. thrust for EMAX RS2205@12V w/ HQ5045BN [Newtons]
 
 % === CHOOSE MODEL =======================================================%
-QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
+% QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 % QQ = 2; % MODEL 2 - simplified rigid-body dynamic model
 % QQ = 3; % MODEL 3 - more simplified rigid-body dynamic model
-% QQ = 4; % MODEL 4 - linear quadrotor model
+QQ = 4; % MODEL 4 - linear quadrotor model
 %=========================================================================%
 
 
@@ -34,7 +34,8 @@ QQ = 1; % MODEL 1 - full rigid body dynamic model w/o propeller gyro effect
 
 % YY = 5; % PID trajectory tracking control law
 % YY = 6; % 1-SM trajectory tracking control law
-YY = 7; % Super-twisting trajectory tracking control law
+% YY = 7; % Super-twisting trajectory tracking control law
+YY = 8;
 %=========================================================================%
 
 
@@ -45,33 +46,34 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 
 % === CHOOSE REFERENCE ===================================================%
+RR = 0;
 % RR = 1; % Z step reference, X & Y = 0
-RR = 2; % Spiral trajectory
+% RR = 2; % Spiral trajectory
 % RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
 
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-% SF = 0; % Z reference w/o smoothing filter
+SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
-SF = 2; % Z reference w/ smoothing filter 2nd order
+% SF = 2; % Z reference w/ smoothing filter 2nd order
 % SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
 
 % === CHOOSE ERROR DERIVATIVE ESTIMATOR ==================================%
-% EE = 0; % w/o estimator
-EE = 1; % linear estimator
+EE = 0; % w/o estimator
+% EE = 1; % linear estimator
 % EE = 2; % super-twisting estimator
 %=========================================================================%
 
 
 % === CHOOSE DISTURBANCE =================================================%
 % --- Type:
-% DD = 0; % without disturbance
+DD = 0; % without disturbance
 % DD = 1; % single wind gust at T/2
 % DD = 2; % four wind gusts (i) at 5+i*T/4, same direction
-DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
+% DD = 3; % four wind gusts (i) at 5+i*T/4, alternating direction
 % DD = 4; % rapid alternating wave disturbance
 
 % --- Shape:
@@ -86,7 +88,7 @@ xx0 = zeros(1, N); % Set all initial conditions to zero
 
 % Define exceptions:
 if (QQ == 1)
-    xx0(4)=1*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
+    xx0(4)=0*0.1; xx0(5)=0*0.1; xx0(6)=0*0.1; % initial angles
 end
 if (QQ == 2)||(QQ == 3)||(QQ == 4)
     xx0(7)=0*0.1; xx0(9)=0*0.1; xx0(11)=0*0.1; % initial angles
@@ -124,8 +126,8 @@ l = 0.125; % 250 class quadrotor frame
 
 
 % === CHOOSE MOTOR SATURATION ============================================%
-SAT = true;
-% SAT = false;
+% SAT = true;
+SAT = false;
 %=========================================================================%
 
 
@@ -155,6 +157,9 @@ if (RR == 3)
     a1 = 5; a2 = 5;   % amplitude referentnog signala (1,0.5)
     w1 = 0.25; w2 = 1.25/2;     % frekvencije referentnog signala; (2,5)
 end
+dPhi_d = 0; dTheta_d = 30; dPsi_d = 0;
+x_d = 0; y_d = 0; z_d = 0;
+dx_d = 0; dy_d = 0; dz_d = 0;
 %-------------------------------------------------------------------------%
 
 % --- Controller parameters ----------------------------------------------%
@@ -314,107 +319,120 @@ if (QQ == 1)
     plot3(y(:,1),y(:,2),y(:,3), 'b', x_ref, y_ref ,z_ref, 'r:', 'linewidth',3),
     ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'),
     set(gca,'fontsize',14,'FontName','Times'), grid on, axis square
+    
+    % Model 1 rates
+    figure(12), set(gcf,'name','Rates','numbertitle','off')
+    subplot(2,3,1), plot(t, y(:,10), 'b', t, dPhi_d, 'r:', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t, y(:,11), 'b', t, dTheta_d, 'r:', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t, y(:,12), 'b', t, dPsi_d, 'r:', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+  
 end
 %-------------------------------------------------------------------------%
 
 % --- MODEL 2 - MODEL 3 - MODEL 4 ----------------------------------------%
 if (QQ == 2)||(QQ == 3)||(QQ == 4)    
-    % Trajectories
-    figure(1), set(gcf,'name','Trajectories','numbertitle','off')
-    subplot(2,3,1), plot(t,y(:,1),'b', td, x_ref,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,2), plot(t,y(:,3),'b', td, y_ref,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,3), plot(t,y(:,5),'b', td, z_ref,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,4), plot(t,y(:,7),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,5), plot(t,y(:,9),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     % Trajectories
+%     figure(1), set(gcf,'name','Trajectories','numbertitle','off')
+%     subplot(2,3,1), plot(t,y(:,1),'b', td, x_ref,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     subplot(2,3,2), plot(t,y(:,3),'b', td, y_ref,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     subplot(2,3,3), plot(t,y(:,5),'b', td, z_ref,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     subplot(2,3,4), plot(t,y(:,7),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     subplot(2,3,5), plot(t,y(:,9),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     
+%     % Errors
+%     figure(2), set(gcf,'name','Errors','numbertitle','off')
+%     subplot(2,3,1), semilogy(td,abs(y(1:(end-1),1)-x_ref), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     subplot(2,3,2), semilogy(td,abs(y(1:(end-1),3)-y_ref), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     subplot(2,3,3), semilogy(td,abs(y(1:(end-1),5)-z_ref), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     
+%     % Force and torques
+%     figure(3), set(gcf,'name','Force and torques','numbertitle','off')
+%     subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 9 15])
+%     subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -10 5])
+%     subplot(2,2,3), plot(td,T2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 5])
+%     subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 1])
+%     
+%     % 3D trajectory
+%     figure(4), set(gcf,'name','3D trajectory','numbertitle','off')
+%     plot3(y(:,1),y(:,3),y(:,5), 'b', x_ref, y_ref ,z_ref, 'r:', 'linewidth',3),
+%     ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'),
+%     set(gca,'fontsize',14,'FontName','Times'), grid on, axis square
     
-    % Errors
-    figure(2), set(gcf,'name','Errors','numbertitle','off')
-    subplot(2,3,1), semilogy(td,abs(y(1:(end-1),1)-x_ref), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,2), semilogy(td,abs(y(1:(end-1),3)-y_ref), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,3), semilogy(td,abs(y(1:(end-1),5)-z_ref), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    
-    % Force and torques
-    figure(3), set(gcf,'name','Force and torques','numbertitle','off')
-    subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 9 15])
-    subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -10 5])
-    subplot(2,2,3), plot(td,T2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 5])
-    subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 1])
-    
-    % 3D trajectory
-    figure(4), set(gcf,'name','3D trajectory','numbertitle','off')
-    plot3(y(:,1),y(:,3),y(:,5), 'b', x_ref, y_ref ,z_ref, 'r:', 'linewidth',3),
-    ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'),
-    set(gca,'fontsize',14,'FontName','Times'), grid on, axis square
-    
+    % Model 1 rates
+    figure(12), set(gcf,'name','Rates','numbertitle','off')
+    subplot(2,3,1), plot(t, y(:,8), 'b', t, dPhi_d, 'r:', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t, y(:,10), 'b', t, dTheta_d, 'r:', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t, y(:,12), 'b', t, dPsi_d, 'r:', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+      
 end % MODEL SPECIFIC
 %-------------------------------------------------------------------------%
 
 % --- GENERAL PLOTS ------------------------------------------------------%
-% Estimated error derivatives
-if (EE ~= 0)
-    figure(5), set(gcf,'name','Estimated error derivatives','numbertitle','off')
-    subplot(2,3,1), plot(td, de_x_est,'b-', td, de_x, 'r:', 'linewidth',4), ylabel('e_x, e_{x,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('de_{x, est}', 'de_x');
-    subplot(2,3,4), semilogy(td, abs(de_x - de_x_est), '-b', 'linewidth',4), ylabel('|de_x - de_{x,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
-    
-    subplot(2,3,2), plot(td, de_y_est,'b-', td, de_y, 'r:', 'linewidth',4), ylabel('e_y, e_{y,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('de_{y, est}', 'de_y');
-    subplot(2,3,5), semilogy(td, abs(de_y - de_y_est), '-b', 'linewidth',4), ylabel('|de_y - de_{y,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
-    
-    subplot(2,3,3), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('de_{z, est}', 'de_z');
-    subplot(2,3,6), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
-end
+% % Estimated error derivatives
+% if (EE ~= 0)
+%     figure(5), set(gcf,'name','Estimated error derivatives','numbertitle','off')
+%     subplot(2,3,1), plot(td, de_x_est,'b-', td, de_x, 'r:', 'linewidth',4), ylabel('e_x, e_{x,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('de_{x, est}', 'de_x');
+%     subplot(2,3,4), semilogy(td, abs(de_x - de_x_est), '-b', 'linewidth',4), ylabel('|de_x - de_{x,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+%     
+%     subplot(2,3,2), plot(td, de_y_est,'b-', td, de_y, 'r:', 'linewidth',4), ylabel('e_y, e_{y,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('de_{y, est}', 'de_y');
+%     subplot(2,3,5), semilogy(td, abs(de_y - de_y_est), '-b', 'linewidth',4), ylabel('|de_y - de_{y,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+%     
+%     subplot(2,3,3), plot(td, de_z_est,'b-', td, de_z, 'r:', 'linewidth',4), ylabel('e_z, e_{z,est}','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('de_{z, est}', 'de_z');
+%     subplot(2,3,6), semilogy(td, abs(de_z - de_z_est), '-b', 'linewidth',4), ylabel('|de_z - de_{z,est}|','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on
+% end
+% 
+% % Filtered reference
+% if (SF ~= 0)
+%     figure(6), set(gcf,'name','Filtered X direction reference','numbertitle','off')
+%     subplot(3,1,1), plot(t, y(:, 27), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('1st order smoothing filter', 'Original X reference');
+%     subplot(3,1,2), plot(t, y(:, 30), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('2nd order smoothing filter', 'Original X reference');
+%     subplot(3,1,3), plot(t, y(:, 33), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('3rd order smoothing filter', 'Original X reference');
+%     
+%     figure(7), set(gcf,'name','Filtered Y direction reference','numbertitle','off')
+%     subplot(3,1,1), plot(t, y(:, 26), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('1st order smoothing filter', 'Original Y reference');
+%     subplot(3,1,2), plot(t, y(:, 29), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('2nd order smoothing filter', 'Original Y reference');
+%     subplot(3,1,3), plot(t, y(:, 32), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('3rd order smoothing filter', 'Original Y reference');
+%     
+%     figure(8), set(gcf,'name','Filtered Z direction reference','numbertitle','off')
+%     subplot(3,1,1), plot(t, y(:, 25), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('1st order smoothing filter', 'Original Z reference');
+%     subplot(3,1,2), plot(t, y(:, 28), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('2nd order smoothing filter', 'Original Z reference');
+%     subplot(3,1,3), plot(t, y(:, 31), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+%     legend('3rd order smoothing filter', 'Original Z reference');
+% end
+% 
+% % Disturbance shape
+% if (DD == 4)
+%     figure(9), set(gcf,'name','Disturbance shape','numbertitle','off')
+%     subplot(2,1,1), plot(t, d_mx, 'b-', 'Linewidth', 4), ylabel('Wind gust in X direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+%     subplot(2,1,2), plot(t, d_my, 'b-', 'Linewidth', 4), ylabel('Wind gust in Y direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+% else if (DD ~= 0)
+%     figure(9), set(gcf,'name','Disturbance shape','numbertitle','off')
+%     plot(t, d_0, 'b-', 'Linewidth', 4), ylabel('Wind gust', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
+%     end
+% end
 
-% Filtered reference
-if (SF ~= 0)
-    figure(6), set(gcf,'name','Filtered X direction reference','numbertitle','off')
-    subplot(3,1,1), plot(t, y(:, 27), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('1st order smoothing filter', 'Original X reference');
-    subplot(3,1,2), plot(t, y(:, 30), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('2nd order smoothing filter', 'Original X reference');
-    subplot(3,1,3), plot(t, y(:, 33), 'b-', t, x_d, 'r:', 'Linewidth', 4), ylabel('x_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('3rd order smoothing filter', 'Original X reference');
-    
-    figure(7), set(gcf,'name','Filtered Y direction reference','numbertitle','off')
-    subplot(3,1,1), plot(t, y(:, 26), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('1st order smoothing filter', 'Original Y reference');
-    subplot(3,1,2), plot(t, y(:, 29), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('2nd order smoothing filter', 'Original Y reference');
-    subplot(3,1,3), plot(t, y(:, 32), 'b-', t, y_d, 'r:', 'Linewidth', 4), ylabel('y_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('3rd order smoothing filter', 'Original Y reference');
-    
-    figure(8), set(gcf,'name','Filtered Z direction reference','numbertitle','off')
-    subplot(3,1,1), plot(t, y(:, 25), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('1st order smoothing filter', 'Original Z reference');
-    subplot(3,1,2), plot(t, y(:, 28), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('2nd order smoothing filter', 'Original Z reference');
-    subplot(3,1,3), plot(t, y(:, 31), 'b-', t, z_d, 'r:', 'Linewidth', 4), ylabel('z_d (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    legend('3rd order smoothing filter', 'Original Z reference');
-end
-
-% Disturbance shape
-if (DD == 4)
-    figure(9), set(gcf,'name','Disturbance shape','numbertitle','off')
-    subplot(2,1,1), plot(t, d_mx, 'b-', 'Linewidth', 4), ylabel('Wind gust in X direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
-    subplot(2,1,2), plot(t, d_my, 'b-', 'Linewidth', 4), ylabel('Wind gust in Y direction', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
-else if (DD ~= 0)
-    figure(9), set(gcf,'name','Disturbance shape','numbertitle','off')
-    plot(t, d_0, 'b-', 'Linewidth', 4), ylabel('Wind gust', 'FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on;
-    end
-end
-
-% Requested actuator angular velocities
-figure(10), set(gcf,'name','Requested actuator angular velocities','numbertitle','off')
-subplot(2,2,1), plot(td, Omega_orig1, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('Actuator 1');
-subplot(2,2,2), plot(td, Omega_orig2, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('Actuator 2');
-subplot(2,2,3), plot(td, Omega_orig3, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('Actuator 3');
-subplot(2,2,4), plot(td, Omega_orig4, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-legend('Actuator 4');
+% % Requested actuator angular velocities
+% figure(10), set(gcf,'name','Requested actuator angular velocities','numbertitle','off')
+% subplot(2,2,1), plot(td, Omega_orig1, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+% legend('Actuator 1');
+% subplot(2,2,2), plot(td, Omega_orig2, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+% legend('Actuator 2');
+% subplot(2,2,3), plot(td, Omega_orig3, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+% legend('Actuator 3');
+% subplot(2,2,4), plot(td, Omega_orig4, 'b-', 'LineWidth', 4), ylabel('Actual angular speed [rad/s]','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+% legend('Actuator 4');
 
 % Saturated actuator angular velocities
 figure(11), set(gcf,'name','Saturated actuator angular velocities','numbertitle','off')
