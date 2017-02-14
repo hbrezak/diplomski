@@ -157,7 +157,7 @@ if (RR == 3)
     a1 = 5; a2 = 5;   % amplitude referentnog signala (1,0.5)
     w1 = 0.25; w2 = 1.25/2;     % frekvencije referentnog signala; (2,5)
 end
-dPhi_d = 0; dTheta_d = 30; dPsi_d = 0;
+dPhi_d = 30; dTheta_d = 0; dPsi_d = 0;
 x_d = 0; y_d = 0; z_d = 0;
 dx_d = 0; dy_d = 0; dz_d = 0;
 %-------------------------------------------------------------------------%
@@ -331,33 +331,33 @@ end
 
 % --- MODEL 2 - MODEL 3 - MODEL 4 ----------------------------------------%
 if (QQ == 2)||(QQ == 3)||(QQ == 4)    
-%     % Trajectories
-%     figure(1), set(gcf,'name','Trajectories','numbertitle','off')
-%     subplot(2,3,1), plot(t,y(:,1),'b', td, x_ref,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     subplot(2,3,2), plot(t,y(:,3),'b', td, y_ref,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     subplot(2,3,3), plot(t,y(:,5),'b', td, z_ref,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     subplot(2,3,4), plot(t,y(:,7),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     subplot(2,3,5), plot(t,y(:,9),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     
-%     % Errors
-%     figure(2), set(gcf,'name','Errors','numbertitle','off')
-%     subplot(2,3,1), semilogy(td,abs(y(1:(end-1),1)-x_ref), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     subplot(2,3,2), semilogy(td,abs(y(1:(end-1),3)-y_ref), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     subplot(2,3,3), semilogy(td,abs(y(1:(end-1),5)-z_ref), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-%     
-%     % Force and torques
-%     figure(3), set(gcf,'name','Force and torques','numbertitle','off')
-%     subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 9 15])
-%     subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -10 5])
-%     subplot(2,2,3), plot(td,T2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 5])
-%     subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 1])
-%     
-%     % 3D trajectory
-%     figure(4), set(gcf,'name','3D trajectory','numbertitle','off')
-%     plot3(y(:,1),y(:,3),y(:,5), 'b', x_ref, y_ref ,z_ref, 'r:', 'linewidth',3),
-%     ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'),
-%     set(gca,'fontsize',14,'FontName','Times'), grid on, axis square
+    % Trajectories
+    figure(1), set(gcf,'name','Trajectories','numbertitle','off')
+    subplot(2,3,1), plot(t,y(:,1),'b', td, x_ref,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t,y(:,3),'b', td, y_ref,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t,y(:,5),'b', td, z_ref,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,4), plot(t,y(:,7),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,5), plot(t,y(:,9),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,6), plot(t,y(:,11),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    
+    % Errors
+    figure(2), set(gcf,'name','Errors','numbertitle','off')
+    subplot(2,3,1), semilogy(td,abs(y(1:(end-1),1)-x_ref), 'b', 'linewidth',4), ylabel('|x-x_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), semilogy(td,abs(y(1:(end-1),3)-y_ref), 'b', 'linewidth',4), ylabel('|y-y_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), semilogy(td,abs(y(1:(end-1),5)-z_ref), 'b', 'linewidth',4), ylabel('|z-z_d| (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    
+    % Force and torques
+    figure(3), set(gcf,'name','Force and torques','numbertitle','off')
+    subplot(2,2,1), plot(td,F,'b', 'linewidth',3), ylabel('F_z (N)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 9 15])
+    subplot(2,2,2), plot(td,T1,'b', 'linewidth',3), ylabel('\tau_1 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -10 5])
+    subplot(2,2,3), plot(td,T2,'b', 'linewidth',3), ylabel('\tau_2 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 5])
+    subplot(2,2,4), plot(td,T3,'b', 'linewidth',3), ylabel('\tau_3 (Nm)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 5 -1 1])
+    
+    % 3D trajectory
+    figure(4), set(gcf,'name','3D trajectory','numbertitle','off')
+    plot3(y(:,1),y(:,3),y(:,5), 'b', x_ref, y_ref ,z_ref, 'r:', 'linewidth',3),
+    ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'),
+    set(gca,'fontsize',14,'FontName','Times'), grid on, axis square
     
     % Model 1 rates
     figure(12), set(gcf,'name','Rates','numbertitle','off')

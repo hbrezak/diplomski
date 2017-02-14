@@ -416,19 +416,23 @@ end
 %-------------------------------------------------------------------------%
 
 if (YY == 8)
+    
+    % Angular velocity errors
     e_dPhi = dPhi - dPhi_d;
     e_dTheta = dTheta - dTheta_d;
     e_dPsi = dPsi - dPsi_d;
     
     throttle = 1050;
-    roll_output = 0.7 * e_dPhi;
-    pitch_output = 0.7 * e_dTheta;
-    yaw_output = 4.5 * e_dPsi;
+        
+    % Rates PID controllers (angular velocities)
+    roll_output = 6.5 * e_dPhi;
+    pitch_output = 6.5 * e_dTheta;
+    yaw_output = 24.5 * e_dPsi;
     
-    Omega = [ throttle - roll_output - pitch_output + yaw_output;
+    Omega = [ throttle - roll_output + pitch_output - yaw_output;
+              throttle + roll_output - pitch_output - yaw_output;
               throttle + roll_output + pitch_output + yaw_output;
-              throttle - roll_output + pitch_output - yaw_output;
-              throttle + roll_output - pitch_output - yaw_output; ];
+              throttle - roll_output - pitch_output + yaw_output; ];
        
     U = E_B * Omega.^2;
     U_0 = U(1);
