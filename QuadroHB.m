@@ -3,7 +3,7 @@ function dy = QuadroHB(t,y)
 global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
-global E_B inv_E_B AngVel_limit Phi_d Theta_d Psi_d
+global E_B inv_E_B AngVel_limit dX_d dY_d dZ_d
 
 dy = zeros(N, 1);
 
@@ -416,30 +416,47 @@ end
 %-------------------------------------------------------------------------%
 
 if (YY == 8)
+    
+    e_vel_x = - dX_d + dX;
+    e_vel_y = dY_d - dY;
+    e_vel_z = dZ_d - dZ;
+    
+    Theta_setpoint = 0.08 * e_vel_x;
+    Phi_setpoint = 0.08 * e_vel_y;
+    vel_z_setpoint = 42 * e_vel_z + 10 * y(66);    
+    
+    throttle = 966 - vel_z_setpoint;
+    
+    Psi_setpoint = 0;
     % Angle errors
-    e_Phi = -Phi + Phi_d;
-    e_Theta = -Theta + Theta_d;
-    e_Psi = -Psi + Psi_d;
-       
+    e_Phi = Phi_setpoint - Phi;
+    e_Theta = Theta_setpoint - Theta;
+    e_Psi = Psi_setpoint - Psi; 
+           
     % Stability PID controllers (angles)
-    roll_stab_output = 0.9 * e_Phi;
-    pitch_stab_output = 0.9 * e_Theta;
-    yaw_stab_output = 0.7 * e_Psi;
+    roll_vel_setpoint = 4 * e_Phi;
+    pitch_vel_setpoint = 4 * e_Theta;
+    yaw_vel_setpoint = 0.7 * e_Psi;
     
    % Angular velocity errors
     %e_dPhi = dPhi - dPhi_d;
     %e_dTheta = dTheta - dTheta_d;
     %e_dPsi = dPsi - dPsi_d;
-    e_dPhi = dPhi - roll_stab_output;
-    e_dTheta = dTheta - pitch_stab_output;
-    e_dPsi = dPsi - yaw_stab_output;
+    e_dPhi = dPhi - roll_vel_setpoint;
+    e_dTheta = dTheta - pitch_vel_setpoint;
+    e_dPsi = dPsi - yaw_vel_setpoint;
+    
+    % Derivatives
+    de_dPhi_est = -Ke_lin*(y(60) - e_dPhi);
+    de_dTheta_est = -Ke_lin*(y(61) - e_dTheta);
+    de_dPsi_est = -Ke_lin*(y(62) - e_dPsi);
         
     % Rates PID controllers (angular velocities)
-    roll_output = 10.5 * e_dPhi;
-    pitch_output = 10.5 * e_dTheta;
-    yaw_output = 85.5 * e_dPsi;
+    roll_output = 70.5 * e_dPhi + 0 * de_dPhi_est + 0 * y(63);
+    pitch_output = 70.5 * e_dTheta + 0 * de_dTheta_est + 0 * y(64);
+    yaw_output = 85.5 * e_dPsi + 0 * de_dPsi_est + 1 * y(65);
     
-    throttle = 1050;
+    %throttle = 1050;
     
     Omega = [ throttle - roll_output + pitch_output - yaw_output;
               throttle + roll_output - pitch_output - yaw_output;
@@ -689,9 +706,23 @@ dy(54) = x_ref;
 dy(55) = y_ref;
 dy(56) = z_ref;
 
-dy(57) = roll_stab_output;
-dy(58) = pitch_stab_output;
-dy(59) = yaw_stab_output;
-    
+dy(57) = roll_vel_setpoint;
+dy(58) = pitch_vel_setpoint;
+dy(59) = yaw_vel_setpoint;
+
+% Derivatives for controller 8 PIDs
+dy(60) = de_dPhi_est;
+dy(61) = de_dTheta_est;
+dy(62) = de_dPsi_est;
+
+% Integrals for controller 8 PIDs
+dy(63) = e_dPhi;
+dy(64) = e_dTheta;
+dy(65) = e_dPsi;
+
+dy(66) = e_vel_z;
+dy(67) = Phi_setpoint;
+dy(68) = Theta_setpoint;
+
 %-------------------------------------------------------------------------%
 end % function QuadroHB
