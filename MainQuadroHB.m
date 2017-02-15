@@ -4,10 +4,10 @@ clear all; clc;
 global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
-global E_B inv_E_B AngVel_limit dPhi_d dTheta_d dPsi_d
+global E_B inv_E_B AngVel_limit Phi_d Theta_d Psi_d
 
-T = 40; % Simulation time
-N = 56; % Number of differential equations
+T = 20; % Simulation time
+N = 59; % Number of differential equations
 
 % Define constant parameters
 grav = 9.81;
@@ -157,7 +157,8 @@ if (RR == 3)
     a1 = 5; a2 = 5;   % amplitude referentnog signala (1,0.5)
     w1 = 0.25; w2 = 1.25/2;     % frekvencije referentnog signala; (2,5)
 end
-dPhi_d = 30; dTheta_d = 0; dPsi_d = 0;
+%dPhi_d = 30; dTheta_d = 0; dPsi_d = 0;
+Phi_d = 0; Theta_d = 0; Psi_d = 30;
 x_d = 0; y_d = 0; z_d = 0;
 dx_d = 0; dy_d = 0; dz_d = 0;
 %-------------------------------------------------------------------------%
@@ -322,9 +323,9 @@ if (QQ == 1)
     
     % Model 1 rates
     figure(12), set(gcf,'name','Rates','numbertitle','off')
-    subplot(2,3,1), plot(t, y(:,10), 'b', t, dPhi_d, 'r:', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,2), plot(t, y(:,11), 'b', t, dTheta_d, 'r:', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,3), plot(t, y(:,12), 'b', t, dPsi_d, 'r:', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,1), plot(t, y(:,10), 'b', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t, y(:,11), 'b', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t, y(:,12), 'b', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
   
 end
 %-------------------------------------------------------------------------%
@@ -359,11 +360,15 @@ if (QQ == 2)||(QQ == 3)||(QQ == 4)
     ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'),
     set(gca,'fontsize',14,'FontName','Times'), grid on, axis square
     
+    dPhi_d = diff(y(:,57))./diff(t);
+    dTheta_d = diff(y(:,58))./diff(t);
+    dPsi_d = diff(y(:,59))./diff(t);
+    
     % Model 1 rates
     figure(12), set(gcf,'name','Rates','numbertitle','off')
-    subplot(2,3,1), plot(t, y(:,8), 'b', t, dPhi_d, 'r:', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,2), plot(t, y(:,10), 'b', t, dTheta_d, 'r:', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,3), plot(t, y(:,12), 'b', t, dPsi_d, 'r:', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,1), plot(t, y(:,8), 'b', td, dPhi_d, 'r:', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t, y(:,10), 'b', td, dTheta_d, 'r:', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t, y(:,12), 'b', td, dPsi_d, 'r:', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
       
 end % MODEL SPECIFIC
 %-------------------------------------------------------------------------%
