@@ -45,20 +45,29 @@ if (RR == 0)
 end
 
 if (RR == 1)
-    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-    y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
-    
     % what ever T is, set step to start at 1 sec. and lower it to 0 at last quarter
     if(t<1)
-        z_d = 0;
+        st = 0;
     else if (t>3*T/4)
-            z_d = 0;
+            st = 0;
         else
-            z_d = 1;
+            st = 1;
         end
     end
-    z_d = z_d * stepAmp;
-    dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
+%     % X step
+%     x_d = st * stepAmp; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+%     y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;    
+%     z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
+    
+    % Y step
+    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    y_d = st * stepAmp; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;    
+    z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
+    
+    % Z step
+%     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+%     y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+%     z_d = st * stepAmp; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
 end
 
 if (RR == 2)
@@ -416,16 +425,19 @@ end
 %-------------------------------------------------------------------------%
 
 if (YY == 8)
+    vel_x_setpoint = -1.4 * e_x;
+    vel_y_setpoint = -1.4 * e_y;
+    vel_z_setpoint = -2.5 * e_z;
+        
+    e_vel_x = - vel_x_setpoint + dX;
+    e_vel_y = vel_y_setpoint - dY;
+    e_vel_z = vel_z_setpoint - dZ;
     
-    e_vel_x = - dX_d + dX;
-    e_vel_y = dY_d - dY;
-    e_vel_z = dZ_d - dZ;
+    Theta_setpoint = 0.2 * e_vel_x;
+    Phi_setpoint = 0.2 * e_vel_y;
+    vel_z = 82 * e_vel_z + 20 * y(66);
     
-    Theta_setpoint = 0.08 * e_vel_x;
-    Phi_setpoint = 0.08 * e_vel_y;
-    vel_z_setpoint = 42 * e_vel_z + 10 * y(66);    
-    
-    throttle = 966 - vel_z_setpoint;
+    throttle = 966 - vel_z;
     
     Psi_setpoint = 0;
     % Angle errors
@@ -723,6 +735,10 @@ dy(65) = e_dPsi;
 dy(66) = e_vel_z;
 dy(67) = Phi_setpoint;
 dy(68) = Theta_setpoint;
+
+dy(69) = vel_x_setpoint;
+dy(70) = vel_y_setpoint;
+dy(71) = vel_z_setpoint;
 
 %-------------------------------------------------------------------------%
 end % function QuadroHB

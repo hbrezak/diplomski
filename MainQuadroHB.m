@@ -6,8 +6,8 @@ global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
 global E_B inv_E_B AngVel_limit dX_d dY_d dZ_d
 
-T = 20; % Simulation time
-N = 68; % Number of differential equations
+T = 10; % Simulation time
+N = 71; % Number of differential equations
 
 % Define constant parameters
 grav = 9.81;
@@ -46,17 +46,17 @@ WW = 1; % Fixed-step Runge-Kutta 4th order
 
 
 % === CHOOSE REFERENCE ===================================================%
-RR = 0;
-% RR = 1; % Z step reference, X & Y = 0
+% RR = 0;
+RR = 1; % Z step reference, X & Y = 0
 % RR = 2; % Spiral trajectory
 % RR = 3; % based on sinusoidal function, repeats after 4 sec
 %=========================================================================%
 
 
 % === CHOOSE REFERENCE SMOOTHING FILTER ==================================%
-SF = 0; % Z reference w/o smoothing filter
+% SF = 0; % Z reference w/o smoothing filter
 % SF = 1; % Z reference w/ smoothing filter 1st order
-% SF = 2; % Z reference w/ smoothing filter 2nd order
+SF = 2; % Z reference w/ smoothing filter 2nd order
 % SF = 3; % Z reference w/ nonlinear saturated smoothing filter
 %=========================================================================%
 
@@ -148,7 +148,9 @@ output(T, QQ, YY, WW, RR, DD, SF, EE, SAT, mm, Ixx, Iyy, Izz, b, d, l, AngVel_li
 % --- Reference trajectory parameters ------------------------------------%
 if (RR == 1)
     stepAmp = 1;
-    x_d = 0; y_d = 0; z_d = 1;
+%     x_d = stepAmp; y_d = 0; z_d = 0; % X step
+    x_d = 0; y_d = stepAmp; z_d = 0; % Y step
+%     x_d = 0; y_d = 0; z_d = stepAmp; % Z step
 end
 if (RR == 2)
     Vx0=0.4; Ay0=1;
@@ -157,9 +159,9 @@ if (RR == 3)
     a1 = 5; a2 = 5;   % amplitude referentnog signala (1,0.5)
     w1 = 0.25; w2 = 1.25/2;     % frekvencije referentnog signala; (2,5)
 end
-%dPhi_d = 30; dTheta_d = 0; dPsi_d = 0;
-%Phi_d = 30; Theta_d = 0; Psi_d = 0;
-dX_d = 0; dY_d = 10; dZ_d = 0;
+% dPhi_d = 30; dTheta_d = 0; dPsi_d = 0;
+% Phi_d = 30; Theta_d = 0; Psi_d = 0;
+% dX_d = 0; dY_d = 10; dZ_d = 0;
 x_d = 0; y_d = 0; z_d = 0;
 dx_d = 0; dy_d = 0; dz_d = 0;
 %-------------------------------------------------------------------------%
@@ -302,8 +304,8 @@ if (QQ == 1)
     subplot(2,3,1), plot(t,y(:,1),'b', td, x_ref,'r:', 'linewidth',4), ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
     subplot(2,3,2), plot(t,y(:,2),'b', td, y_ref,'r:', 'linewidth',4), ylabel('y (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
     subplot(2,3,3), plot(t,y(:,3),'b', td, z_ref,'r:', 'linewidth',4), ylabel('z (m)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,%axis([0 10 0 1.2])
-    subplot(2,3,4), plot(t,y(:,4),'b', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,5), plot(t,y(:,5),'b', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,4), plot(t,y(:,4),'b', td, Phi_d, 'r:', 'linewidth',4), ylabel('\phi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,5), plot(t,y(:,5),'b', td, Theta_d, 'r:', 'linewidth',4), ylabel('\theta (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
     subplot(2,3,6), plot(t,y(:,6),'b', 'linewidth',4), ylabel('\psi (rad)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
     
     % Errors
@@ -325,12 +327,22 @@ if (QQ == 1)
     ylabel('x (m)','FontSize',16,'FontName','Times'), xlabel('y (m)','FontSize',16,'FontName','Times'), zlabel('z (m)','FontSize',16,'FontName','Times'),
     set(gca,'fontsize',14,'FontName','Times'), grid on, axis square
     
-    % Model 1 rates
+    dPhi_d = diff(y(:,57))./diff(t);
+    dTheta_d = diff(y(:,58))./diff(t);
+    dPsi_d = diff(y(:,59))./diff(t);
+    
+    % Rates
     figure(12), set(gcf,'name','Rates','numbertitle','off')
-    subplot(2,3,1), plot(t, y(:,10), 'b', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,2), plot(t, y(:,11), 'b', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,3), plot(t, y(:,12), 'b', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-  
+    subplot(2,3,1), plot(t, y(:,10), 'b', td, dPhi_d, 'r:', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t, y(:,11), 'b', td, dTheta_d, 'r:', 'linewidth',4), ylabel('dTheta, dTheta_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t, y(:,12), 'b', td, dPsi_d, 'r:', 'linewidth',4), ylabel('dPsi, dPsi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    
+    % Linear velocities
+    figure(13), set(gcf,'name','Vel','numbertitle','off')
+    subplot(2,3,1), plot(t, y(:,7), 'b', 'linewidth',4), ylabel('Velocity X','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t, y(:,8), 'b', 'linewidth',4), ylabel('Velocity Y','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t, y(:,9), 'b', 'linewidth',4), ylabel('Velocity Z','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+      
 end
 %-------------------------------------------------------------------------%
 
@@ -368,6 +380,10 @@ if (QQ == 2)||(QQ == 3)||(QQ == 4)
     dTheta_d = diff(y(:,58))./diff(t);
     dPsi_d = diff(y(:,59))./diff(t);
     
+    dX_ref = diff(y(:,69))./diff(t);
+    dY_ref = diff(y(:,70))./diff(t);
+    dZ_ref = diff(y(:,71))./diff(t);
+    
     % Rates
     figure(12), set(gcf,'name','Rates','numbertitle','off')
     subplot(2,3,1), plot(t, y(:,8), 'b', td, dPhi_d, 'r:', 'linewidth',4), ylabel('dPhi, dPhi_d (rad/s)','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
@@ -376,9 +392,9 @@ if (QQ == 2)||(QQ == 3)||(QQ == 4)
     
     % Linear velocities
     figure(13), set(gcf,'name','Vel','numbertitle','off')
-    subplot(2,3,1), plot(t, y(:,2), 'b', 'linewidth',4), ylabel('Velocity X','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,2), plot(t, y(:,4), 'b', 'linewidth',4), ylabel('Velocity Y','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
-    subplot(2,3,3), plot(t, y(:,6), 'b', 'linewidth',4), ylabel('Velocity Z','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,1), plot(t, y(:,2), 'b', td, dX_ref, 'r:', 'linewidth',4), ylabel('Velocity X','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,2), plot(t, y(:,4), 'b', td, dY_ref, 'r:', 'linewidth',4), ylabel('Velocity Y','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
+    subplot(2,3,3), plot(t, y(:,6), 'b', td, dZ_ref, 'r:', 'linewidth',4), ylabel('Velocity Z','FontSize',16,'FontName','Times'), xlabel('time (sec)','FontSize',16,'FontName','Times'), set(gca,'fontsize',14,'FontName','Times'), grid on,
       
 end % MODEL SPECIFIC
 %-------------------------------------------------------------------------%
