@@ -425,48 +425,107 @@ end
 %-------------------------------------------------------------------------%
 
 if (YY == 8)
-    vel_x_setpoint = -1.4 * e_x;
-    vel_y_setpoint = -1.4 * e_y;
-    vel_z_setpoint = -2.5 * e_z;
-        
-    e_vel_x = - vel_x_setpoint + dX;
-    e_vel_y = vel_y_setpoint - dY;
-    e_vel_z = vel_z_setpoint - dZ;
+    % Position P controller gains
+%     pos_xy_p = 0.95; % PX4
+%     pos_z_p = 1;
     
-    Theta_setpoint = 0.2 * e_vel_x;
-    Phi_setpoint = 0.2 * e_vel_y;
+    pos_xy_p = -1.4; % mine
+    pos_z_p = -2.5;
+
+
+    % Linear velocity PID controller gains
+%     vel_xy_p = 0.09;
+%     vel_xy_i = 0.02;
+%     vel_xy_d = 0.01;
+%     vel_z_p = 0.2;
+%     vel_z_i = 0.02;
+%     vel_z_d = 0;
+    
+    vel_xy_p = 0.2;
+    vel_xy_i = 0;
+    vel_xy_d = 0;
+    vel_z_p = 0.2;
+    vel_z_i = 0.02;
+    vel_z_d = 0;
+
+
+    % Angle P controller gains
+%     att_phi_p = 6.5;
+%     att_theta_p = 6.5;
+%     att_psi_p = 2.8;
+    
+    att_phi_p = 4;
+    att_theta_p = 4;
+    att_psi_p = 0.7;
+       
+
+    % Angular velocity PID controller gains
+%     rate_rollrate_p = 0.15;
+%     rate_rollrate_i = 0.05;
+%     rate_rollrate_d = 0.003;
+%     rate_pitchrate_p = 0.15;
+%     rate_pitchrate_i = 0.05;
+%     rate_pitchrate_d = 0.003;
+%     rate_yawrate_p = 0.2;
+%     rate_yawrate_i = 0.1;
+%     rate_yawrate_d = 0;
+    
+    rate_rollrate_p = 70.5;
+    rate_rollrate_i = 0;
+    rate_rollrate_d = 0;
+    rate_pitchrate_p = 70.5;
+    rate_pitchrate_i = 0;
+    rate_pitchrate_d = 0;
+    rate_yawrate_p = 85.5;
+    rate_yawrate_i = 1;
+    rate_yawrate_d = 0;
+
+    
+    % --- POSITION P CONTROLLERS --- %
+    vel_x_sp = pos_xy_p * e_x; % _sp == setpoint
+    vel_y_sp = pos_xy_p * e_y;
+    vel_z_sp = pos_z_p * e_z;
+    
+    
+    % --- LINEAR VELOCITY PID CONTROLLERS --- %
+    % Errors
+    e_vel_x = - vel_x_sp + dX;
+    e_vel_y = vel_y_sp - dY;
+    e_vel_z = vel_z_sp - dZ;
+    % Linear velocity PID 
+    Theta_sp = vel_xy_p * e_vel_x;
+    Phi_sp = vel_xy_p * e_vel_y;
+    Psi_sp = 0;
+    
     vel_z = 82 * e_vel_z + 20 * y(66);
     
     throttle = 966 - vel_z;
     
-    Psi_setpoint = 0;
+    
+    % --- ANGLE P CONTROLLERS --- %    
     % Angle errors
-    e_Phi = Phi_setpoint - Phi;
-    e_Theta = Theta_setpoint - Theta;
-    e_Psi = Psi_setpoint - Psi; 
-           
-    % Stability PID controllers (angles)
-    roll_vel_setpoint = 4 * e_Phi;
-    pitch_vel_setpoint = 4 * e_Theta;
-    yaw_vel_setpoint = 0.7 * e_Psi;
+    e_Phi = Phi_sp - Phi;
+    e_Theta = Theta_sp - Theta;
+    e_Psi = Psi_sp - Psi;           
+    % Angle P controllers (stabilized)
+    rollrate_sp = att_phi_p * e_Phi;
+    pitchrate_sp = att_theta_p * e_Theta;
+    yawrate_sp = att_psi_p * e_Psi;
     
-   % Angular velocity errors
-    %e_dPhi = dPhi - dPhi_d;
-    %e_dTheta = dTheta - dTheta_d;
-    %e_dPsi = dPsi - dPsi_d;
-    e_dPhi = dPhi - roll_vel_setpoint;
-    e_dTheta = dTheta - pitch_vel_setpoint;
-    e_dPsi = dPsi - yaw_vel_setpoint;
     
+    % --- RATE PID CONTROLLERS --- %
+    % Angular velocity errors
+    e_dPhi = dPhi - rollrate_sp;
+    e_dTheta = dTheta - pitchrate_sp;
+    e_dPsi = dPsi - yawrate_sp;    
     % Derivatives
     de_dPhi_est = -Ke_lin*(y(60) - e_dPhi);
     de_dTheta_est = -Ke_lin*(y(61) - e_dTheta);
-    de_dPsi_est = -Ke_lin*(y(62) - e_dPsi);
-        
-    % Rates PID controllers (angular velocities)
-    roll_output = 70.5 * e_dPhi + 0 * de_dPhi_est + 0 * y(63);
-    pitch_output = 70.5 * e_dTheta + 0 * de_dTheta_est + 0 * y(64);
-    yaw_output = 85.5 * e_dPsi + 0 * de_dPsi_est + 1 * y(65);
+    de_dPsi_est = -Ke_lin*(y(62) - e_dPsi);        
+    % Angular velocity PID controllers (rates)
+    roll_output = rate_rollrate_p * e_dPhi + rate_rollrate_d * de_dPhi_est + rate_rollrate_i * y(63);
+    pitch_output = rate_pitchrate_p * e_dTheta + rate_pitchrate_d * de_dTheta_est + rate_pitchrate_i * y(64);
+    yaw_output = rate_yawrate_p * e_dPsi + rate_yawrate_d * de_dPsi_est + rate_yawrate_i * y(65);
     
     %throttle = 1050;
     
@@ -718,9 +777,9 @@ dy(54) = x_ref;
 dy(55) = y_ref;
 dy(56) = z_ref;
 
-dy(57) = roll_vel_setpoint;
-dy(58) = pitch_vel_setpoint;
-dy(59) = yaw_vel_setpoint;
+dy(57) = rollrate_sp;
+dy(58) = pitchrate_sp;
+dy(59) = yawrate_sp;
 
 % Derivatives for controller 8 PIDs
 dy(60) = de_dPhi_est;
@@ -733,12 +792,12 @@ dy(64) = e_dTheta;
 dy(65) = e_dPsi;
 
 dy(66) = e_vel_z;
-dy(67) = Phi_setpoint;
-dy(68) = Theta_setpoint;
+dy(67) = Phi_sp;
+dy(68) = Theta_sp;
 
-dy(69) = vel_x_setpoint;
-dy(70) = vel_y_setpoint;
-dy(71) = vel_z_setpoint;
+dy(69) = vel_x_sp;
+dy(70) = vel_y_sp;
+dy(71) = vel_z_sp;
 
 %-------------------------------------------------------------------------%
 end % function QuadroHB
