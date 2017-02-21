@@ -7,7 +7,7 @@ global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
 global E_B inv_E_B AngVel_limit dX_d dY_d dZ_d
 
 T = 10; % Simulation time
-N = 71; % Number of differential equations
+N = 77; % Number of differential equations
 
 % Define constant parameters
 grav = 9.81;
@@ -149,8 +149,8 @@ output(T, QQ, YY, WW, RR, DD, SF, EE, SAT, mm, Ixx, Iyy, Izz, b, d, l, AngVel_li
 if (RR == 1)
     stepAmp = 1;
 %     x_d = stepAmp; y_d = 0; z_d = 0; % X step
-    x_d = 0; y_d = stepAmp; z_d = 0; % Y step
-%     x_d = 0; y_d = 0; z_d = stepAmp; % Z step
+%     x_d = 0; y_d = stepAmp; z_d = 0; % Y step
+     x_d = 0; y_d = 0; z_d = stepAmp; % Z step
 end
 if (RR == 2)
     Vx0=0.4; Ay0=1;

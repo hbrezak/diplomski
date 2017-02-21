@@ -60,14 +60,14 @@ if (RR == 1)
 %     z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
     
     % Y step
-    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-    y_d = st * stepAmp; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;    
-    z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
+%     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+%     y_d = st * stepAmp; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;    
+%     z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
     
     % Z step
-%     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-%     y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
-%     z_d = st * stepAmp; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
+    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+    z_d = st * stepAmp; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
 end
 
 if (RR == 2)
@@ -444,9 +444,9 @@ if (YY == 8)
     vel_xy_p = 0.2;
     vel_xy_i = 0;
     vel_xy_d = 0;
-    vel_z_p = 0.2;
-    vel_z_i = 0.02;
-    vel_z_d = 0;
+    vel_z_p = 140;
+    vel_z_i = 60;
+    vel_z_d = 60;
 
 
     % Angle P controller gains
@@ -492,12 +492,16 @@ if (YY == 8)
     e_vel_x = - vel_x_sp + dX;
     e_vel_y = vel_y_sp - dY;
     e_vel_z = vel_z_sp - dZ;
+    % Derivatives
+    de_vel_x_est = -Ke_lin*(y(72) - e_vel_x);
+    de_vel_y_est = -Ke_lin*(y(73) - e_vel_y);
+    de_vel_z_est = -Ke_lin*(y(74) - e_vel_z);
     % Linear velocity PID 
-    Theta_sp = vel_xy_p * e_vel_x;
-    Phi_sp = vel_xy_p * e_vel_y;
+    Theta_sp = vel_xy_p * e_vel_x + vel_xy_i * y(75) + vel_xy_d * de_vel_x_est;
+    Phi_sp = vel_xy_p * e_vel_y + vel_xy_i * y(76) + vel_xy_d * de_vel_y_est;
     Psi_sp = 0;
     
-    vel_z = 82 * e_vel_z + 20 * y(66);
+    vel_z = vel_z_p * e_vel_z + vel_z_i * y(77) + vel_z_d * de_vel_z_est;
     
     throttle = 966 - vel_z;
     
@@ -523,9 +527,9 @@ if (YY == 8)
     de_dTheta_est = -Ke_lin*(y(61) - e_dTheta);
     de_dPsi_est = -Ke_lin*(y(62) - e_dPsi);        
     % Angular velocity PID controllers (rates)
-    roll_output = rate_rollrate_p * e_dPhi + rate_rollrate_d * de_dPhi_est + rate_rollrate_i * y(63);
-    pitch_output = rate_pitchrate_p * e_dTheta + rate_pitchrate_d * de_dTheta_est + rate_pitchrate_i * y(64);
-    yaw_output = rate_yawrate_p * e_dPsi + rate_yawrate_d * de_dPsi_est + rate_yawrate_i * y(65);
+    roll_output = rate_rollrate_p * e_dPhi + rate_rollrate_i * y(63) + rate_rollrate_d * de_dPhi_est;
+    pitch_output = rate_pitchrate_p * e_dTheta + rate_pitchrate_i * y(64) + rate_pitchrate_d * de_dTheta_est;
+    yaw_output = rate_yawrate_p * e_dPsi + rate_yawrate_i * y(65) + rate_yawrate_d * de_dPsi_est;
     
     %throttle = 1050;
     
@@ -798,6 +802,16 @@ dy(68) = Theta_sp;
 dy(69) = vel_x_sp;
 dy(70) = vel_y_sp;
 dy(71) = vel_z_sp;
+
+% --- LINEAR VELOCITY PID CONTROLLERS --- %
+% Derivatives
+dy(72) = de_vel_x_est;
+dy(73) = de_vel_y_est;
+dy(74) = de_vel_z_est;
+% Integrals
+dy(75) = e_vel_x;
+dy(76) = e_vel_y;
+dy(77) = e_vel_z;
 
 %-------------------------------------------------------------------------%
 end % function QuadroHB
