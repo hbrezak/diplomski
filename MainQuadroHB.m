@@ -149,8 +149,8 @@ output(T, QQ, YY, WW, RR, DD, SF, EE, SAT, mm, Ixx, Iyy, Izz, b, d, l, AngVel_li
 if (RR == 1)
     stepAmp = 1;
 %     x_d = stepAmp; y_d = 0; z_d = 0; % X step
-%     x_d = 0; y_d = stepAmp; z_d = 0; % Y step
-     x_d = 0; y_d = 0; z_d = stepAmp; % Z step
+    x_d = 0; y_d = stepAmp; z_d = 0; % Y step
+%      x_d = 0; y_d = 0; z_d = stepAmp; % Z step
 end
 if (RR == 2)
     Vx0=0.4; Ay0=1;

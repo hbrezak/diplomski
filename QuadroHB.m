@@ -60,14 +60,14 @@ if (RR == 1)
 %     z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
     
     % Y step
-%     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-%     y_d = st * stepAmp; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;    
-%     z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
+    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+    y_d = st * stepAmp; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;    
+    z_d = 0; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
     
     % Z step
-    x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
-    y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
-    z_d = st * stepAmp; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
+%     x_d = 0; dx_d=0; ddx_d=0; d3x_d=0; d4x_d=0;
+%     y_d = 0; dy_d=0; ddy_d=0; d3y_d=0; d4y_d=0;
+%     z_d = st * stepAmp; dz_d=0; ddz_d=0; d3z_d=0; d4z_d=0;
 end
 
 if (RR == 2)
@@ -479,64 +479,82 @@ if (YY == 8)
     rate_yawrate_p = 85.5;
     rate_yawrate_i = 1;
     rate_yawrate_d = 0;
+    
 
     
     % --- POSITION P CONTROLLERS --- %
-    vel_x_sp = pos_xy_p * e_x; % _sp == setpoint
-    vel_y_sp = pos_xy_p * e_y;
-    vel_z_sp = pos_z_p * e_z;
+%     vel_x_sp = pos_xy_p * e_x; % original P controller
+%     vel_y_sp = pos_xy_p * e_y; % _sp == setpoint
+%     vel_z_sp = pos_z_p * e_z;
+
+    pos_p = [pos_xy_p; pos_xy_p; pos_z_p];
+    pos_err = [e_x; e_y; e_z];
+    vel_sp = pos_p .* pos_err; % vectorized P controller version
     
     
     % --- LINEAR VELOCITY PID CONTROLLERS --- %
     % Errors
-    e_vel_x = - vel_x_sp + dX;
-    e_vel_y = vel_y_sp - dY;
-    e_vel_z = vel_z_sp - dZ;
+    e_vel_x = - vel_sp(1) + dX;
+    e_vel_y = vel_sp(2) - dY;
+    e_vel_z = vel_sp(3) - dZ;
     % Derivatives
     de_vel_x_est = -Ke_lin*(y(72) - e_vel_x);
     de_vel_y_est = -Ke_lin*(y(73) - e_vel_y);
     de_vel_z_est = -Ke_lin*(y(74) - e_vel_z);
-    % Linear velocity PID 
-    Theta_sp = vel_xy_p * e_vel_x + vel_xy_i * y(75) + vel_xy_d * de_vel_x_est;
-    Phi_sp = vel_xy_p * e_vel_y + vel_xy_i * y(76) + vel_xy_d * de_vel_y_est;
+    % Linear velocity PID
+    vel_p = [vel_xy_p; vel_xy_p; vel_z_p];
+    vel_i = [vel_xy_i; vel_xy_i; vel_z_i];
+    vel_d = [vel_xy_d; vel_xy_d; vel_z_d];
+    
+    vel_err = [e_vel_x; e_vel_y; e_vel_z];
+    vel_err_der = [de_vel_x_est; de_vel_y_est; de_vel_z_est];
+    vel_err_int = [y(75); y(76); y(77)];
+    
+    att_sp = vel_p .* vel_err + vel_i .* vel_err_int + vel_d .* vel_err_der;
+
     Psi_sp = 0;
-    
-    vel_z = vel_z_p * e_vel_z + vel_z_i * y(77) + vel_z_d * de_vel_z_est;
-    
-    throttle = 966 - vel_z;
+    throttle = 966 - att_sp(3);
     
     
     % --- ANGLE P CONTROLLERS --- %    
     % Angle errors
-    e_Phi = Phi_sp - Phi;
-    e_Theta = Theta_sp - Theta;
+    e_Phi = att_sp(2) - Phi;
+    e_Theta = att_sp(1) - Theta;
     e_Psi = Psi_sp - Psi;           
     % Angle P controllers (stabilized)
-    rollrate_sp = att_phi_p * e_Phi;
-    pitchrate_sp = att_theta_p * e_Theta;
-    yawrate_sp = att_psi_p * e_Psi;
+    att_p = [att_phi_p; att_theta_p; att_psi_p];
+    att_err = [e_Phi; e_Theta; e_Psi];
+    
+    rate_sp = att_p .* att_err;
     
     
     % --- RATE PID CONTROLLERS --- %
     % Angular velocity errors
-    e_dPhi = dPhi - rollrate_sp;
-    e_dTheta = dTheta - pitchrate_sp;
-    e_dPsi = dPsi - yawrate_sp;    
+    e_dPhi = dPhi - rate_sp(1);
+    e_dTheta = dTheta - rate_sp(2);
+    e_dPsi = dPsi - rate_sp(3);    
     % Derivatives
     de_dPhi_est = -Ke_lin*(y(60) - e_dPhi);
     de_dTheta_est = -Ke_lin*(y(61) - e_dTheta);
     de_dPsi_est = -Ke_lin*(y(62) - e_dPsi);        
     % Angular velocity PID controllers (rates)
-    roll_output = rate_rollrate_p * e_dPhi + rate_rollrate_i * y(63) + rate_rollrate_d * de_dPhi_est;
-    pitch_output = rate_pitchrate_p * e_dTheta + rate_pitchrate_i * y(64) + rate_pitchrate_d * de_dTheta_est;
-    yaw_output = rate_yawrate_p * e_dPsi + rate_yawrate_i * y(65) + rate_yawrate_d * de_dPsi_est;
+    rate_p = [rate_rollrate_p; rate_pitchrate_p; rate_yawrate_p];
+    rate_i = [rate_rollrate_i; rate_pitchrate_i; rate_yawrate_i];
+    rate_d = [rate_rollrate_d; rate_pitchrate_d; rate_yawrate_d];
+    
+    rate_err = [e_dPhi; e_dTheta; e_dPsi];
+    rate_err_der = [de_dPhi_est; de_dTheta_est; de_dPsi_est];
+    rate_err_int = [y(63); y(64); y(65)];
+    
+    rate_output = rate_p .* rate_err + rate_i .* rate_err_int + rate_d .* rate_err_der;
     
     %throttle = 1050;
     
-    Omega = [ throttle - roll_output + pitch_output - yaw_output;
-              throttle + roll_output - pitch_output - yaw_output;
-              throttle + roll_output + pitch_output + yaw_output;
-              throttle - roll_output - pitch_output + yaw_output; ];
+    Omega = [ throttle - rate_output(1) + rate_output(2) - rate_output(3);
+              throttle + rate_output(1) - rate_output(2) - rate_output(3);
+              throttle + rate_output(1) + rate_output(2) + rate_output(3);
+              throttle - rate_output(1) - rate_output(2) + rate_output(3); ];
+            % throttle - roll_output    - pitch_output   + yaw_output;
        
     U = E_B * Omega.^2;
     U_0 = U(1);
@@ -781,9 +799,9 @@ dy(54) = x_ref;
 dy(55) = y_ref;
 dy(56) = z_ref;
 
-dy(57) = rollrate_sp;
-dy(58) = pitchrate_sp;
-dy(59) = yawrate_sp;
+dy(57) = rate_sp(1);
+dy(58) = rate_sp(2);
+dy(59) = rate_sp(3);
 
 % Derivatives for controller 8 PIDs
 dy(60) = de_dPhi_est;
@@ -796,12 +814,12 @@ dy(64) = e_dTheta;
 dy(65) = e_dPsi;
 
 dy(66) = e_vel_z;
-dy(67) = Phi_sp;
-dy(68) = Theta_sp;
+dy(67) = att_sp(2); % Phi, makes changes in y
+dy(68) = att_sp(1); % Theta, makes changes in x
 
-dy(69) = vel_x_sp;
-dy(70) = vel_y_sp;
-dy(71) = vel_z_sp;
+dy(69) = vel_sp(1);
+dy(70) = vel_sp(2);
+dy(71) = vel_sp(3);
 
 % --- LINEAR VELOCITY PID CONTROLLERS --- %
 % Derivatives
