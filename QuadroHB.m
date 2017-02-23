@@ -3,7 +3,7 @@ function dy = QuadroHB(t,y)
 global N T QQ YY DD RR SF EE SAT
 global grav mm Ixx Iyy Izz I_B d0 Sg Vx0 Ay0 a1 a2 w1 w2 stepAmp
 global k_P k_D kk_P kk_D kk_I k_3 k_2 k_1 k_0 Ke_lin Ke_st Ksf rho u kg
-global E_B inv_E_B AngVel_limit dX_d dY_d dZ_d
+global E_B inv_E_B AngVel_limit
 
 dy = zeros(N, 1);
 
@@ -426,68 +426,23 @@ end
 
 if (YY == 8)
     % Position P controller gains
-%     pos_xy_p = 0.95; % PX4
-%     pos_z_p = 1;
-    
-    pos_xy_p = -1.4; % mine
-    pos_z_p = -2.5;
-
+    pos_p = [-1.4; -1.4; -2.5]; % pos_xy_p; pos_xy_p; pos_z_p
 
     % Linear velocity PID controller gains
-%     vel_xy_p = 0.09;
-%     vel_xy_i = 0.02;
-%     vel_xy_d = 0.01;
-%     vel_z_p = 0.2;
-%     vel_z_i = 0.02;
-%     vel_z_d = 0;
-    
-    vel_xy_p = 0.2;
-    vel_xy_i = 0;
-    vel_xy_d = 0;
-    vel_z_p = 140;
-    vel_z_i = 60;
-    vel_z_d = 60;
-
+    vel_p = [0.4; 0.4; 140]; % vel_xy_p; vel_xy_p; vel_z_p
+    vel_i = [0; 0; 60]; % vel_xy_i; vel_xy_i; vel_z_i
+    vel_d = [0.2; 0.2; 60]; % vel_xy_d; vel_xy_d; vel_z_d
 
     % Angle P controller gains
-%     att_phi_p = 6.5;
-%     att_theta_p = 6.5;
-%     att_psi_p = 2.8;
+    att_p = [ 8; 8; 0.7]; % att_phi_p; att_theta_p; att_psi_p
     
-    att_phi_p = 4;
-    att_theta_p = 4;
-    att_psi_p = 0.7;
-       
-
     % Angular velocity PID controller gains
-%     rate_rollrate_p = 0.15;
-%     rate_rollrate_i = 0.05;
-%     rate_rollrate_d = 0.003;
-%     rate_pitchrate_p = 0.15;
-%     rate_pitchrate_i = 0.05;
-%     rate_pitchrate_d = 0.003;
-%     rate_yawrate_p = 0.2;
-%     rate_yawrate_i = 0.1;
-%     rate_yawrate_d = 0;
-    
-    rate_rollrate_p = 70.5;
-    rate_rollrate_i = 0;
-    rate_rollrate_d = 0;
-    rate_pitchrate_p = 70.5;
-    rate_pitchrate_i = 0;
-    rate_pitchrate_d = 0;
-    rate_yawrate_p = 85.5;
-    rate_yawrate_i = 1;
-    rate_yawrate_d = 0;
-    
+    rate_p = [ 80.5; 80.5; 85.5]; % rollrate_p; pitchrate_p; yawrate_p
+    rate_i = [ 1; 1; 1]; % rollrate_i; pitchrate_i; yawrate_i
+    rate_d = [ 50; 50; 0]; % rollrate_d; pitchrate_d; yawrate_d    
 
     
     % --- POSITION P CONTROLLERS --- %
-%     vel_x_sp = pos_xy_p * e_x; % original P controller
-%     vel_y_sp = pos_xy_p * e_y; % _sp == setpoint
-%     vel_z_sp = pos_z_p * e_z;
-
-    pos_p = [pos_xy_p; pos_xy_p; pos_z_p];
     pos_err = [e_x; e_y; e_z];
     vel_sp = pos_p .* pos_err; % vectorized P controller version
     
@@ -501,11 +456,8 @@ if (YY == 8)
     de_vel_x_est = -Ke_lin*(y(72) - e_vel_x);
     de_vel_y_est = -Ke_lin*(y(73) - e_vel_y);
     de_vel_z_est = -Ke_lin*(y(74) - e_vel_z);
-    % Linear velocity PID
-    vel_p = [vel_xy_p; vel_xy_p; vel_z_p];
-    vel_i = [vel_xy_i; vel_xy_i; vel_z_i];
-    vel_d = [vel_xy_d; vel_xy_d; vel_z_d];
     
+    % Linear velocity PID
     vel_err = [e_vel_x; e_vel_y; e_vel_z];
     vel_err_der = [de_vel_x_est; de_vel_y_est; de_vel_z_est];
     vel_err_int = [y(75); y(76); y(77)];
@@ -521,8 +473,8 @@ if (YY == 8)
     e_Phi = att_sp(2) - Phi;
     e_Theta = att_sp(1) - Theta;
     e_Psi = Psi_sp - Psi;           
+    
     % Angle P controllers (stabilized)
-    att_p = [att_phi_p; att_theta_p; att_psi_p];
     att_err = [e_Phi; e_Theta; e_Psi];
     
     rate_sp = att_p .* att_err;
@@ -537,11 +489,8 @@ if (YY == 8)
     de_dPhi_est = -Ke_lin*(y(60) - e_dPhi);
     de_dTheta_est = -Ke_lin*(y(61) - e_dTheta);
     de_dPsi_est = -Ke_lin*(y(62) - e_dPsi);        
-    % Angular velocity PID controllers (rates)
-    rate_p = [rate_rollrate_p; rate_pitchrate_p; rate_yawrate_p];
-    rate_i = [rate_rollrate_i; rate_pitchrate_i; rate_yawrate_i];
-    rate_d = [rate_rollrate_d; rate_pitchrate_d; rate_yawrate_d];
     
+    % Angular velocity PID controllers (rates)
     rate_err = [e_dPhi; e_dTheta; e_dPsi];
     rate_err_der = [de_dPhi_est; de_dTheta_est; de_dPsi_est];
     rate_err_int = [y(63); y(64); y(65)];
@@ -550,10 +499,10 @@ if (YY == 8)
     
     %throttle = 1050;
     
-    Omega = [ throttle - rate_output(1) + rate_output(2) - rate_output(3);
-              throttle + rate_output(1) - rate_output(2) - rate_output(3);
-              throttle + rate_output(1) + rate_output(2) + rate_output(3);
-              throttle - rate_output(1) - rate_output(2) + rate_output(3); ];
+    Omega = [ max(throttle - rate_output(1) + rate_output(2) - rate_output(3), 0);
+              max(throttle + rate_output(1) - rate_output(2) - rate_output(3), 0);
+              max(throttle + rate_output(1) + rate_output(2) + rate_output(3), 0);
+              max(throttle - rate_output(1) - rate_output(2) + rate_output(3), 0); ];
             % throttle - roll_output    - pitch_output   + yaw_output;
        
     U = E_B * Omega.^2;
@@ -568,15 +517,15 @@ end
 % --- Actuator saturation ------------------------------------------------%
 Omega_orig = real(sqrt(inv_E_B*[U_0 U_1 U_2 U_3]'));
 
-% if (max(Omega_orig) > AngVel_limit)
-%     scale_factor = AngVel_limit/max(Omega_orig);
-%     Omega = Omega_orig .* scale_factor;
-% else
-%     Omega = Omega_orig;
-% end
-% %Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
-% 
-% FF = E_B * Omega.^2;
+if (max(Omega_orig) > AngVel_limit)
+    scale_factor = AngVel_limit/max(Omega_orig);
+    Omega = Omega_orig .* scale_factor;
+else
+    Omega = Omega_orig;
+end
+%Omega = AngVel_limit.*tanh(Omega./AngVel_limit); % old version
+
+FF = E_B * Omega.^2;
 %-------------------------------------------------------------------------%
 
 % --- Disturbances (wind gust) -------------------------------------------%
@@ -740,9 +689,9 @@ dy(18) = Phi;
 dy(19) = Theta;
 dy(20) = Psi;
 
-if (YY == 5) % super-twisting tracking control law integral part
+if (YY == 4) % super-twisting algorithm integral part
     dy(21) = -Uz*sign(s0);
-else if (YY == 7)
+else if (YY == 7) % super-twisting tracking control law integral part
     dy(21) = -Uz*sign(s0);
     dy(22) = -Uy*sign(s1);
     dy(23) = -Ux*sign(s2);
@@ -799,37 +748,38 @@ dy(54) = x_ref;
 dy(55) = y_ref;
 dy(56) = z_ref;
 
-dy(57) = rate_sp(1);
-dy(58) = rate_sp(2);
-dy(59) = rate_sp(3);
-
-% Derivatives for controller 8 PIDs
-dy(60) = de_dPhi_est;
-dy(61) = de_dTheta_est;
-dy(62) = de_dPsi_est;
-
-% Integrals for controller 8 PIDs
-dy(63) = e_dPhi;
-dy(64) = e_dTheta;
-dy(65) = e_dPsi;
-
-dy(66) = e_vel_z;
-dy(67) = att_sp(2); % Phi, makes changes in y
-dy(68) = att_sp(1); % Theta, makes changes in x
-
-dy(69) = vel_sp(1);
-dy(70) = vel_sp(2);
-dy(71) = vel_sp(3);
-
-% --- LINEAR VELOCITY PID CONTROLLERS --- %
-% Derivatives
-dy(72) = de_vel_x_est;
-dy(73) = de_vel_y_est;
-dy(74) = de_vel_z_est;
-% Integrals
-dy(75) = e_vel_x;
-dy(76) = e_vel_y;
-dy(77) = e_vel_z;
-
+if (YY == 8)
+    dy(57) = rate_sp(1);
+    dy(58) = rate_sp(2);
+    dy(59) = rate_sp(3);
+    
+    % Derivatives for controller 8 PIDs
+    dy(60) = de_dPhi_est;
+    dy(61) = de_dTheta_est;
+    dy(62) = de_dPsi_est;
+    
+    % Integrals for controller 8 PIDs
+    dy(63) = e_dPhi;
+    dy(64) = e_dTheta;
+    dy(65) = e_dPsi;
+    
+    dy(66) = e_vel_z;
+    dy(67) = att_sp(2); % Phi, makes changes in y
+    dy(68) = att_sp(1); % Theta, makes changes in x
+    
+    dy(69) = vel_sp(1);
+    dy(70) = vel_sp(2);
+    dy(71) = vel_sp(3);
+    
+    % --- LINEAR VELOCITY PID CONTROLLERS --- %
+    % Derivatives
+    dy(72) = de_vel_x_est;
+    dy(73) = de_vel_y_est;
+    dy(74) = de_vel_z_est;
+    % Integrals
+    dy(75) = e_vel_x;
+    dy(76) = e_vel_y;
+    dy(77) = e_vel_z;
+end
 %-------------------------------------------------------------------------%
 end % function QuadroHB
